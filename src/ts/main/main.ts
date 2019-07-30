@@ -46,7 +46,8 @@ export function start() {
 	// show UI
 	document.getElementById('location').style.display = null
 	document.getElementById('save').style.display = null
-
+	// hide front page
+	document.getElementById('front_page').style.display = 'none'
 
 	// register the places
 	Game.registerPlaces()
@@ -80,4 +81,6 @@ export function start() {
 	slot = prompt("Which slot") || 'Unnamed'
 	if(localStorage.getItem(`slot:${slot}`) !== undefined)
 		SaveHandler.loadFromBrowserData(slot)
+	else
+		drawTable()
 }

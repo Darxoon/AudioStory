@@ -38,7 +38,8 @@ p {
 }
 
 #start_button {
-    margin-top: 3rem;
+    width: 100%;
+    margin-left: 0.4rem;
 }
 
 #save {
@@ -92,4 +93,34 @@ button {
 #save_load_error_box::before {
     content: "❌";
     margin-right: 0.7rem;
+}
+
+code {
+    background: #1a1a1a;
+    padding: 0.2rem 0.3rem;
+    border-radius: 0.25rem;
+}
+
+#start_button_bar {
+    display: flex;
+    margin-top: 3rem;
+    height: 3rem;
+}
+#select_save_button {
+    width: 20rem;
+}
+#save_dropdown {
+    display: block;
+    position: relative;
+    background: gray;
+    width: 17rem;
+    padding: 1rem 0;
+    top: -14.8rem
+}
+#save_dropdown li {
+    padding: 0.4rem 2.5rem;
+    list-style: none;
+}
+#save_dropdown li:hover {
+    background: darkgray;
 }

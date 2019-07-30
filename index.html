@@ -49,7 +49,33 @@
 
 		</table>
 
-		<button id="start_button" onclick="document.getElementById('start_button').style.display = 'none'; require(['main/main'], main => { main.start() })">Start</button>
+		<div id="front_page">
+			<h1>AudioStory</h1>
+			<p><em>'AudioStory'</em>  is an interactive Story entirely based on audio.</p>
+			<p>It's completely made by Darxoon and utilizes a text-to-speech api for pronouncing the text. Maybe, I'll add real voice later, however, now, it's not planned.</p>
+			<p><strong>Github:</strong> https://github.com/Darxoon/AudioStory<br> <strong>Website:</strong> https://AudioStory.github.io/<br> <strong>Youtube:</strong> <a href="https://www.youtube.com/channel/UCPUuzVM3shb1OExbMu0VV0Q?view_as=subscriber" title="Youtube">Darxoon</a><br> <strong>Twitter:</strong> <span class="citation">[@darxoon]</span>(https://twitter.com/darxoon &quot;twitter.com/darxoon&quot;)<br> <strong>Discord:</strong> <a href="https://discord.gg/2PyRyRh" title="My discord server">discord.gg/2PyRyRh</a></p>
+			<h3>Controls</h3>
+			<ul>
+				<li>Navigate through menus with <code>W</code> and <code>S</code>. Press Space to talk to a person or to fight an enemy.</li>
+				<li>Press Space while talking to a person to skip their text</li>
+				<li>In fights, the enemy will either make a left panned, right panned or centered noise. The player then has to dodge in that direction with <code>A</code>, <code>W</code> or <code>D</code> with perfect timing. Depending on how well it was timed, the more damage the player makes. If the dodge has failed, you loose health.</li>
+				<li>Press <code>Esc</code> to open the pause menu. There, press <code>S</code> to save and <code>Q</code> to quit. Press <code>Esc</code> again to resume.</li>
+			</ul>
+			<h3>Development</h3>
+			<p>This is still in development. A release date is not planned.</p>
+
+			<div id="start_button_bar">
+				<button id="select_save_button">Select save</button>
+				<button id="start_button" onclick="require(['main/main'], main => { main.start() })">Start</button>
+			</div>
+
+			<ul id="save_dropdown">
+				<li>New...</li>
+				<li>Test1</li>
+				<li>Test2</li>
+				<li>I am cool</li>
+			</ul>
+		</div>
 
 		<div id="save" style="display: none">
 			<h2>Save / Load</h2>
