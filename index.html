@@ -1,0 +1,75 @@
+<!DOCTYPE html>
+<html lang="en">
+	<head>
+		<!-- region meta crap -->
+		<meta charset="utf-8" />
+		<meta http-equiv="X-UA-Compatible" content="IE=edge">
+		<meta name="viewport" content="width=device-width, initial-scale=1">
+		<!-- endregion -->
+
+
+		<title>Slimp - ein Audio RPG</title>
+		<link rel="stylesheet" type="text/css" media="screen" href="style.css" />
+		<script>
+			global = window
+		</script>
+		<script src="node_modules/bson/dist/bson.bundle.js"></script>
+<!--		<script src="node_modules/crypto-js/crypto-js.js"></script>-->
+		<script data-main="src/js/index.js" src="node_modules/requirejs/require.js"></script>
+		<script src="src/js/main.js"></script>
+
+
+		<!-- region fonts -->
+		<link href="https://fonts.googleapis.com/css?family=Open+Sans:400,800" rel="stylesheet">
+		<link href="https://fonts.googleapis.com/css?family=Source+Sans+Pro" rel="stylesheet">
+		<!-- endregion -->
+
+	</head>
+
+	<body>
+
+		<div id="textbox_frame" style="display: none;">
+			<h3 id="text_title">Text Box</h3>
+			<div id="textbox">
+				<p>This is paragraph 1</p>
+				<p>This is paragraph 2</p>
+				<p>This is paragraph 3</p>
+			</div>
+		</div>
+
+
+		<table id="location" style="display: none">
+			<thead>
+			<tr>
+				<th>&nbsp;</th>
+				<th>Name</th>
+				<th>ID</th>
+			</tr>
+			</thead>
+
+		</table>
+
+		<button id="start_button" onclick="document.getElementById('start_button').style.display = 'none'; require(['main/main'], main => { main.start() })">Start</button>
+
+		<div id="save" style="display: none">
+			<h2>Save / Load</h2>
+
+			<div id="save_load_error_box" style="display: none">Error: Corrupted Save</div>
+
+			<button id="save_to_browser_data"><b>Save to browser data</b></button>
+			<button id="save_as_text"><b>Get the current game as text</b></button>
+
+			&nbsp;&nbsp;
+			<button id="load_from_text"><b>Load from text</b></button>
+			<button id="load_from_browser_data"><b>Open from browser data</b></button>
+
+			<br>
+			<textarea id="save_output" style="display: none;"></textarea>
+			<button id="save_submit" style="display: none"><b>Load</b></button>
+			<button id="save_cancel" style="display: none;"><b>Cancel</b></button>
+
+		</div>
+
+
+	</body>
+</html>
