@@ -62,6 +62,8 @@ define("interaction/sounds", ["require", "exports"], function (require, exports)
     }
     exports.loadAllSounds = loadAllSounds;
     function play(sound, gain = 1, pan = 0, sinPan = false) {
+        if (typeof sound === 'string')
+            sound = { type: 'file', name: sound };
         if (sound.type === 'file') {
             // play file
             const source = context.createBufferSource();
@@ -90,7 +92,7 @@ define("interaction/sounds", ["require", "exports"], function (require, exports)
         else {
             // text to speech
             // temporarily, text to speech will play the placeholder file
-            play({ type: 'file', name: 'tts_placeholder' });
+            play('tts_placeholder');
         }
     }
     exports.play = play;
@@ -397,7 +399,7 @@ define("util/traveling", ["require", "exports", "main/main", "main/state", "plac
     }
     exports.Traveling = Traveling;
 });
-define("interaction/keyboard/keyboard", ["require", "exports", "main/main", "place/dialogue", "main/state", "interaction/visual", "util/traveling"], function (require, exports, main_4, dialogue_2, state_3, visual_3, traveling_1) {
+define("interaction/keyboard/keyboard", ["require", "exports", "main/main", "place/dialogue", "main/state", "interaction/visual", "util/traveling", "interaction/sounds"], function (require, exports, main_4, dialogue_2, state_3, visual_3, traveling_1, sounds_1) {
     "use strict";
     Object.defineProperty(exports, "__esModule", { value: true });
     class Keyboard {
@@ -427,6 +429,7 @@ define("interaction/keyboard/keyboard", ["require", "exports", "main/main", "pla
                         main_4.Game.state.selectedPlace--;
                     if (main_4.Game.state.selectedPlace < 0) {
                         main_4.Game.state.selectedPlace = 0;
+                        sounds_1.play({ type: 'file', name: '' });
                         if (!currentLocation[main_4.Game.state.selectedPlace].isShown())
                             main_4.Game.state.selectedPlace++;
                     }

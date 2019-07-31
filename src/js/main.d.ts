@@ -6,7 +6,7 @@ declare module "interaction/sound" {
         type: 'tts';
         voice: string;
         text: string;
-    };
+    } | string;
 }
 declare module "interaction/sounds" {
     import { Sound } from "interaction/sound";
