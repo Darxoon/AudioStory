@@ -1,3 +1,20 @@
+declare module "interaction/sound" {
+    export type Sound = {
+        type: 'file';
+        name: string;
+    } | {
+        type: 'tts';
+        voice: string;
+        text: string;
+    };
+}
+declare module "interaction/sounds" {
+    import { Sound } from "interaction/sound";
+    export function loadAndPlaySound(): void;
+    export function addSound(name: string, path: string): void;
+    export function loadAllSounds(): void;
+    export function play(sound: Sound, gain?: number, pan?: number, sinPan?: boolean): void;
+}
 declare module "main/state" {
     /**
      * Expresses the player's progress, position and status.
@@ -130,8 +147,5 @@ declare module "interaction/visual" {
     }
     export function drawTable(): void;
     export let ph: string;
-}
-declare module "interaction/voice" {
-    export function loadAndPlaySound(): void;
 }
 //# sourceMappingURL=main.d.ts.map
