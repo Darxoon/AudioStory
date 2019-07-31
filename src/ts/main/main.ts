@@ -21,20 +21,23 @@ export class Game {
 
 
 			Kottlington: [
-				new Dialogue("Grandma's cottage", "kottlington.Grandma", ["Hey! I don't want you, go to Battlington."], undefined, undefined,
+				new Dialogue("Grandma's cottage", 'tts_placeholder', "kottlington.Grandma", ["Hey! I don't want you, go to Battlington."], undefined, undefined,
 					() => SaveHandler.setBoolean('story progression', 'talkedToGrandma', true)),
-				new Dialogue("A weak rat", "kottlington.weakRat$1", ["Hey. I'm nice to you. Please go away."]),
-				new Dialogue("Travel to Battlington", "kottlington.Battlington", ["You go to Battlington"],
+				new Dialogue("A weak rat", 'tts_placeholder', "kottlington.weakRat$1", ["Hey. I'm nice to you. Please go away."]),
+				new Dialogue("Travel to Battlington", 'tts_placeholder', "kottlington.Battlington", ["You go to Battlington"],
 					() => SaveHandler.getBoolean('story progression', 'talkedToGrandma'),
 					undefined,
 					() => Traveling.changeLocation('Battlington'))
 			],
 			Battlington: [
-				new Dialogue("The pub 'the great dragon'",  "battlington.Pub",      ["Hey!"]),
-				new Dialogue("A slime",                     "battlington.slime$1",  ["Hey. I'm nice to you. Please go away."]),
-				new Dialogue("Kate's house",                "battlington.Kate",     ["Hey! I'm Kate."]),
-				new Dialogue("An egg with legs",            "battlington.egg$1",    ["Hey. I'm nice to you. Please go away."], undefined, undefined, () => {console.log('thanks')}),
-				new Dialogue("Justus's house",              "battlington.Justus",   ["Hey! I'm Justus."]),
+				new Dialogue("The pub 'the great dragon'",	'tts_placeholder',	"battlington.Pub",      ["Hey!"]),
+				new Dialogue("A slime", 					'tts_placeholder',	"battlington.slime$1",  ["Hey. I'm nice to you. Please go away."]),
+				new Dialogue("Kate's house", 				'tts_placeholder',	"battlington.Kate",     ["Hey! I'm Kate."]),
+				new Dialogue("An egg with legs", 			'tts_placeholder',	"battlington.egg$1",    ["Hey. I'm nice to you. Please go away."],
+					undefined,
+					undefined,
+					() => {console.log('thanks')}),
+				new Dialogue("Justus's house", 				'tts_placeholder',	"battlington.Justus",   ["Hey! I'm Justus."]),
 			]
 
 
