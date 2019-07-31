@@ -5,6 +5,7 @@ import {Keyboard} from "../interaction/keyboard/keyboard";
 import {Place} from "../place/place";
 import {SaveHandler} from "../util/saveHandler";
 import {Traveling} from "../util/traveling";
+import * as Sounds from "interaction/sounds"
 
 /**
  * Here's where all important information about the game are stored.
@@ -60,6 +61,17 @@ export function start() {
 	document.addEventListener('keyup', (e: KeyboardEvent): void => {
 		Keyboard.keyUp(e)
 	})
+
+	// add sounds
+	function addSound(name: string) {
+		Sounds.addSound(name, `src/sounds/${name}.wav`)
+	}
+	addSound('moved_selection')
+	addSound('selection_confirmed')
+	addSound('selection_not_possible')
+	addSound('tts_placeholder')
+
+	Sounds.loadAllSounds()
 
 	// do the visuals
 	let table = document.getElementById('location')

@@ -1,4 +1,100 @@
 "use strict";
+var __importStar = (this && this.__importStar) || function (mod) {
+    if (mod && mod.__esModule) return mod;
+    var result = {};
+    if (mod != null) for (var k in mod) if (Object.hasOwnProperty.call(mod, k)) result[k] = mod[k];
+    result["default"] = mod;
+    return result;
+};
+define("interaction/sound", ["require", "exports"], function (require, exports) {
+    "use strict";
+    Object.defineProperty(exports, "__esModule", { value: true });
+});
+define("interaction/sounds", ["require", "exports"], function (require, exports) {
+    "use strict";
+    Object.defineProperty(exports, "__esModule", { value: true });
+    function loadAndPlaySound() {
+        const context = new AudioContext();
+        const request = new XMLHttpRequest();
+        request.open('GET', 'src/sounds/moved_selection.wav', true);
+        request.responseType = 'arraybuffer';
+        request.onload = () => {
+            console.log(request.response);
+            context.decodeAudioData(request.response)
+                .then(x => {
+                const audioBuffer = x;
+                const source = context.createBufferSource();
+                source.buffer = audioBuffer;
+                source.connect(context.destination);
+                source.start();
+            })
+                .catch(x => {
+                console.error(x);
+            });
+        };
+        request.send(null);
+    }
+    exports.loadAndPlaySound = loadAndPlaySound;
+    const context = new AudioContext();
+    const soundLoadQueue = [];
+    const soundLib = {};
+    function addSound(name, path) {
+        soundLoadQueue.push({ name, path: path });
+    }
+    exports.addSound = addSound;
+    function loadAllSounds() {
+        soundLoadQueue.forEach(value => {
+            const request = new XMLHttpRequest();
+            request.open('GET', value.path, true);
+            request.responseType = 'arraybuffer';
+            request.onload = () => {
+                context.decodeAudioData(request.response)
+                    .then(audioBuffer => {
+                    soundLib[value.name] = audioBuffer;
+                })
+                    .catch(reason => {
+                    console.error(reason);
+                });
+            };
+            request.send(null);
+        });
+        console.log(soundLib);
+    }
+    exports.loadAllSounds = loadAllSounds;
+    function play(sound, gain = 1, pan = 0, sinPan = false) {
+        if (sound.type === 'file') {
+            // play file
+            const source = context.createBufferSource();
+            source.buffer = soundLib[sound.name];
+            const gainNode = context.createGain();
+            gainNode.gain.value = gain;
+            source.connect(gainNode);
+            const pannerNode = context.createStereoPanner();
+            pannerNode.pan.value = pan;
+            gainNode.connect(pannerNode);
+            pannerNode.connect(context.destination);
+            source.start();
+            if (sinPan) {
+                let interval;
+                let count = 0;
+                interval = setInterval(() => {
+                    pannerNode.pan.value = Math.sin(pan);
+                    pan += 0.01;
+                    count++;
+                }, 1);
+                source.addEventListener('ended', () => {
+                    clearInterval(interval);
+                });
+            }
+        }
+        else {
+            // text to speech
+            // temporarily, text to speech will play the placeholder file
+            play({ type: 'file', name: 'tts_placeholder' });
+        }
+    }
+    exports.play = play;
+});
 define("main/state", ["require", "exports"], function (require, exports) {
     "use strict";
     Object.defineProperty(exports, "__esModule", { value: true });
@@ -380,9 +476,10 @@ define("interaction/keyboard/keyboard", ["require", "exports", "main/main", "pla
         visual_3.drawTable();
     }
 });
-define("main/main", ["require", "exports", "main/state", "place/dialogue", "interaction/visual", "interaction/keyboard/keyboard", "util/saveHandler", "util/traveling"], function (require, exports, state_4, dialogue_3, visual_4, keyboard_1, saveHandler_2, traveling_2) {
+define("main/main", ["require", "exports", "main/state", "place/dialogue", "interaction/visual", "interaction/keyboard/keyboard", "util/saveHandler", "util/traveling", "interaction/sounds"], function (require, exports, state_4, dialogue_3, visual_4, keyboard_1, saveHandler_2, traveling_2, Sounds) {
     "use strict";
     Object.defineProperty(exports, "__esModule", { value: true });
+    Sounds = __importStar(Sounds);
     /**
      * Here's where all important information about the game are stored.
      */
@@ -423,6 +520,15 @@ define("main/main", ["require", "exports", "main/state", "place/dialogue", "inte
         document.addEventListener('keyup', (e) => {
             keyboard_1.Keyboard.keyUp(e);
         });
+        // add sounds
+        function addSound(name) {
+            Sounds.addSound(name, `src/sounds/${name}.wav`);
+        }
+        addSound('moved_selection');
+        addSound('selection_confirmed');
+        addSound('selection_not_possible');
+        addSound('tts_placeholder');
+        Sounds.loadAllSounds();
         // do the visuals
         let table = document.getElementById('location');
         if (table instanceof HTMLElement)
@@ -488,31 +594,5 @@ define("interaction/visual", ["require", "exports", "main/main", "main/state"], 
         did.appendChild(document.createTextNode(id));
         row.appendChild(did);
     }
-});
-define("interaction/voice", ["require", "exports"], function (require, exports) {
-    "use strict";
-    Object.defineProperty(exports, "__esModule", { value: true });
-    function loadAndPlaySound() {
-        const context = new AudioContext();
-        const request = new XMLHttpRequest();
-        request.open('GET', 'src/sounds/moved_selection.wav', true);
-        request.responseType = 'arraybuffer';
-        request.onload = () => {
-            console.log(request.response);
-            context.decodeAudioData(request.response)
-                .then(x => {
-                const audioBuffer = x;
-                const source = context.createBufferSource();
-                source.buffer = audioBuffer;
-                source.connect(context.destination);
-                source.start();
-            })
-                .catch(x => {
-                console.error(x);
-            });
-        };
-        request.send(null);
-    }
-    exports.loadAndPlaySound = loadAndPlaySound;
 });
 //# sourceMappingURL=main.js.map
