@@ -79,8 +79,10 @@ export function start() {
 		throw new Error("Can't find the textbox's contents!")
 
 	slot = prompt("Which slot") || 'Unnamed'
-	if(localStorage.getItem(`slot:${slot}`) !== undefined)
+	if(localStorage.getItem(`slot:${slot}`))
 		SaveHandler.loadFromBrowserData(slot)
 	else
 		drawTable()
+
+
 }

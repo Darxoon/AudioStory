@@ -411,6 +411,8 @@ define("main/main", ["require", "exports", "main/state", "place/dialogue", "inte
         // show UI
         document.getElementById('location').style.display = null;
         document.getElementById('save').style.display = null;
+        // hide front page
+        document.getElementById('front_page').style.display = 'none';
         // register the places
         Game.registerPlaces();
         saveHandler_2.SaveHandler.initDatabase();
@@ -437,10 +439,11 @@ define("main/main", ["require", "exports", "main/state", "place/dialogue", "inte
             visual_4.Visual.textBoxText = textBoxText;
         else
             throw new Error("Can't find the textbox's contents!");
-        visual_4.drawTable();
         slot = prompt("Which slot") || 'Unnamed';
-        if (localStorage.getItem(`slot:${slot}`) !== undefined)
+        if (localStorage.getItem(`slot:${slot}`))
             saveHandler_2.SaveHandler.loadFromBrowserData(slot);
+        else
+            visual_4.drawTable();
     }
     exports.start = start;
 });
@@ -485,5 +488,31 @@ define("interaction/visual", ["require", "exports", "main/main", "main/state"], 
         did.appendChild(document.createTextNode(id));
         row.appendChild(did);
     }
+});
+define("interaction/voice", ["require", "exports"], function (require, exports) {
+    "use strict";
+    Object.defineProperty(exports, "__esModule", { value: true });
+    function loadAndPlaySound() {
+        const context = new AudioContext();
+        const request = new XMLHttpRequest();
+        request.open('GET', 'src/sounds/moved_selection.wav', true);
+        request.responseType = 'arraybuffer';
+        request.onload = () => {
+            console.log(request.response);
+            context.decodeAudioData(request.response)
+                .then(x => {
+                const audioBuffer = x;
+                const source = context.createBufferSource();
+                source.buffer = audioBuffer;
+                source.connect(context.destination);
+                source.start();
+            })
+                .catch(x => {
+                console.error(x);
+            });
+        };
+        request.send(null);
+    }
+    exports.loadAndPlaySound = loadAndPlaySound;
 });
 //# sourceMappingURL=main.js.map

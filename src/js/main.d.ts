@@ -131,4 +131,7 @@ declare module "interaction/visual" {
     export function drawTable(): void;
     export let ph: string;
 }
+declare module "interaction/voice" {
+    export function loadAndPlaySound(): void;
+}
 //# sourceMappingURL=main.d.ts.map
