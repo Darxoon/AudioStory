@@ -148,4 +148,15 @@ declare module "interaction/visual" {
     export function drawTable(): void;
     export let ph: string;
 }
+declare module "place/enemy" {
+    import { Place } from "place/place";
+    import { Sound } from "interaction/sound";
+    export abstract class Enemy implements Place {
+        displayName: string;
+        id: string;
+        isShown: () => boolean;
+        fightName: Sound;
+        init: () => NodeJS.Timeout;
+    }
+}
 //# sourceMappingURL=main.d.ts.map

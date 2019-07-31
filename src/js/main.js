@@ -1,4 +1,3 @@
-"use strict";
 var __importStar = (this && this.__importStar) || function (mod) {
     if (mod && mod.__esModule) return mod;
     var result = {};
@@ -65,29 +64,33 @@ define("interaction/sounds", ["require", "exports"], function (require, exports)
         if (typeof sound === 'string')
             sound = { type: 'file', name: sound };
         if (sound.type === 'file') {
-            // play file
-            const source = context.createBufferSource();
-            source.buffer = soundLib[sound.name];
-            const gainNode = context.createGain();
-            gainNode.gain.value = gain;
-            source.connect(gainNode);
-            const pannerNode = context.createStereoPanner();
-            pannerNode.pan.value = pan;
-            gainNode.connect(pannerNode);
-            pannerNode.connect(context.destination);
-            source.start();
-            if (sinPan) {
-                let interval;
-                let count = 0;
-                interval = setInterval(() => {
-                    pannerNode.pan.value = Math.sin(pan);
-                    pan += 0.01;
-                    count++;
-                }, 1);
-                source.addEventListener('ended', () => {
-                    clearInterval(interval);
-                });
+            if (soundLib[sound.name]) {
+                // play file
+                const source = context.createBufferSource();
+                source.buffer = soundLib[sound.name];
+                const gainNode = context.createGain();
+                gainNode.gain.value = gain;
+                source.connect(gainNode);
+                const pannerNode = context.createStereoPanner();
+                pannerNode.pan.value = pan;
+                gainNode.connect(pannerNode);
+                pannerNode.connect(context.destination);
+                source.start();
+                if (sinPan) {
+                    let interval;
+                    let count = 0;
+                    interval = setInterval(() => {
+                        pannerNode.pan.value = Math.sin(pan);
+                        pan += 0.01;
+                        count++;
+                    }, 1);
+                    source.addEventListener('ended', () => {
+                        clearInterval(interval);
+                    });
+                }
             }
+            else
+                console.error(`Sound called '${sound.name} doesn't exist`);
         }
         else {
             // text to speech
@@ -399,9 +402,10 @@ define("util/traveling", ["require", "exports", "main/main", "main/state", "plac
     }
     exports.Traveling = Traveling;
 });
-define("interaction/keyboard/keyboard", ["require", "exports", "main/main", "place/dialogue", "main/state", "interaction/visual", "util/traveling", "interaction/sounds"], function (require, exports, main_4, dialogue_2, state_3, visual_3, traveling_1, sounds_1) {
+define("interaction/keyboard/keyboard", ["require", "exports", "main/main", "place/dialogue", "main/state", "interaction/visual", "util/traveling", "interaction/sounds"], function (require, exports, main_4, dialogue_2, state_3, visual_3, traveling_1, Sounds) {
     "use strict";
     Object.defineProperty(exports, "__esModule", { value: true });
+    Sounds = __importStar(Sounds);
     class Keyboard {
         // public static keyDown   (e: KeyboardEvent) { console.log(this.keys[e.key]) }
         static keyDown(e) { if (this.keys[e.key] !== undefined)
@@ -429,9 +433,12 @@ define("interaction/keyboard/keyboard", ["require", "exports", "main/main", "pla
                         main_4.Game.state.selectedPlace--;
                     if (main_4.Game.state.selectedPlace < 0) {
                         main_4.Game.state.selectedPlace = 0;
-                        sounds_1.play({ type: 'file', name: '' });
+                        Sounds.play('selection_not_possible');
                         if (!currentLocation[main_4.Game.state.selectedPlace].isShown())
                             main_4.Game.state.selectedPlace++;
+                    }
+                    else {
+                        Sounds.play('moved_selection');
                     }
                     break;
                 case 's':
@@ -439,8 +446,12 @@ define("interaction/keyboard/keyboard", ["require", "exports", "main/main", "pla
                         main_4.Game.state.selectedPlace++;
                     if (main_4.Game.state.selectedPlace >= currentLocation.length) {
                         main_4.Game.state.selectedPlace = currentLocation.length - 1;
+                        Sounds.play('selection_not_possible');
                         if (!currentLocation[main_4.Game.state.selectedPlace].isShown())
                             main_4.Game.state.selectedPlace--;
+                    }
+                    else {
+                        Sounds.play('moved_selection');
                     }
                     break;
                 case ' ':
@@ -597,5 +608,12 @@ define("interaction/visual", ["require", "exports", "main/main", "main/state"], 
         did.appendChild(document.createTextNode(id));
         row.appendChild(did);
     }
+});
+define("place/enemy", ["require", "exports"], function (require, exports) {
+    "use strict";
+    Object.defineProperty(exports, "__esModule", { value: true });
+    class Enemy {
+    }
+    exports.Enemy = Enemy;
 });
 //# sourceMappingURL=main.js.map
