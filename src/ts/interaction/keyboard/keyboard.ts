@@ -6,7 +6,7 @@ import {Dialogue} from "../../place/dialogue";
 import {Status} from "../../main/state";
 import {drawTable} from "../visual";
 import {Traveling} from "../../util/traveling";
-import {play} from "../sounds";
+import * as Sounds from "interaction/sounds"
 
 export class Keyboard {
 
@@ -37,11 +37,12 @@ function keyPressed(e: KeyboardEvent) {
 					Game.state.selectedPlace--
 				if (Game.state.selectedPlace < 0) {
 					Game.state.selectedPlace = 0
-					play('selection_not_possible')
+					Sounds.play('selection_not_possible')
 					if(!currentLocation[Game.state.selectedPlace].isShown())
 						Game.state.selectedPlace++
-				} else
-					play('moved_selection')
+				} else {
+					Sounds.play('moved_selection')
+				}
 				break
 
 			case 's':
@@ -50,11 +51,12 @@ function keyPressed(e: KeyboardEvent) {
 					Game.state.selectedPlace++
 				if(Game.state.selectedPlace >= currentLocation.length) {
 					Game.state.selectedPlace = currentLocation.length - 1
-					play('selection_not_possible')
+					Sounds.play('selection_not_possible')
 					if(!currentLocation[Game.state.selectedPlace].isShown())
 						Game.state.selectedPlace--
-				} else
-					play('moved_selection')
+				} else {
+					Sounds.play('moved_selection')
+				}
 				break
 
 			case ' ':
