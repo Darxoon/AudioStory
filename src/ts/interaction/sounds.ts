@@ -1,3 +1,5 @@
+import {Sound} from "./sound";
+
 export function loadAndPlaySound() {
 	const context = new AudioContext()
 	const request = new XMLHttpRequest()
@@ -38,12 +40,54 @@ export function loadAllSounds() {
 				.then(audioBuffer => {
 					soundLib[value.name] = audioBuffer
 				})
+				.catch(reason => {
+					console.error(reason)
+				})
 		}
 		request.send(null)
 	})
 	console.log(soundLib)
 }
 
-export function play(name: string) {
-	
+export function play(sound: Sound, gain = 1, pan = 0, sinPan = false) {
+	if(sound.type === 'file') {
+		// play file
+		const source = context.createBufferSource()
+		source.buffer = soundLib[sound.name]
+
+
+		const gainNode = context.createGain()
+		gainNode.gain.value = gain
+		source.connect(gainNode)
+
+		const pannerNode = context.createStereoPanner()
+		pannerNode.pan.value = pan
+		gainNode.connect(pannerNode)
+
+		pannerNode.connect(context.destination)
+		source.start()
+
+
+		if(sinPan) {
+
+			let interval: NodeJS.Timeout
+			let count = 0
+
+			interval = setInterval(() => {
+				pannerNode.pan.value = Math.sin(pan)
+				pan += 0.01
+				count++
+
+			}, 1)
+
+			source.addEventListener('ended', () => {
+				clearInterval(interval)
+			})
+		}
+
+	} else {
+		// text to speech
+		// temporarily, text to speech will play the placeholder file
+		play({ type: 'file', name: 'tts_placeholder' })
+	}
 }
