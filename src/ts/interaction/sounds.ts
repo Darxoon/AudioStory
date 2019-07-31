@@ -50,44 +50,48 @@ export function loadAllSounds() {
 }
 
 export function play(sound: Sound, gain = 1, pan = 0, sinPan = false) {
+	if(typeof sound === 'string')
+		sound = { type: 'file', name: sound }
 	if(sound.type === 'file') {
-		// play file
-		const source = context.createBufferSource()
-		source.buffer = soundLib[sound.name]
+		if(soundLib[sound.name]) {
+			// play file
+			const source = context.createBufferSource()
+			source.buffer = soundLib[sound.name]
 
 
-		const gainNode = context.createGain()
-		gainNode.gain.value = gain
-		source.connect(gainNode)
+			const gainNode = context.createGain()
+			gainNode.gain.value = gain
+			source.connect(gainNode)
 
-		const pannerNode = context.createStereoPanner()
-		pannerNode.pan.value = pan
-		gainNode.connect(pannerNode)
+			const pannerNode = context.createStereoPanner()
+			pannerNode.pan.value = pan
+			gainNode.connect(pannerNode)
 
-		pannerNode.connect(context.destination)
-		source.start()
+			pannerNode.connect(context.destination)
+			source.start()
 
 
-		if(sinPan) {
+			if (sinPan) {
 
-			let interval: NodeJS.Timeout
-			let count = 0
+				let interval: NodeJS.Timeout
+				let count = 0
 
-			interval = setInterval(() => {
-				pannerNode.pan.value = Math.sin(pan)
-				pan += 0.01
-				count++
+				interval = setInterval(() => {
+					pannerNode.pan.value = Math.sin(pan)
+					pan += 0.01
+					count++
 
-			}, 1)
+				}, 1)
 
-			source.addEventListener('ended', () => {
-				clearInterval(interval)
-			})
-		}
-
+				source.addEventListener('ended', () => {
+					clearInterval(interval)
+				})
+			}
+		} else
+			console.error(`Sound called '${sound.name} doesn't exist`)
 	} else {
 		// text to speech
 		// temporarily, text to speech will play the placeholder file
-		play({ type: 'file', name: 'tts_placeholder' })
+		play('tts_placeholder')
 	}
 }
