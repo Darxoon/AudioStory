@@ -16,7 +16,6 @@ export class Dialogue implements Place {
 
 	/**
 	 * A dialogue that can be selected in the menu. It can be a person, a sign or other things with text, or just a script that gets run.
-	 * @param displayName The name to show in debug view when you scroll over it in the menu.
 	 * @param menuVoiceName The name to play when you scroll over this in the menu.
 	 * @param id The id used to address this place.
 	 * @param text The text to read. The first function
@@ -24,8 +23,7 @@ export class Dialogue implements Place {
 	 * @param onEnter The function that gets run when you enter this place. Decides which text to read.
 	 * @param onFinish The function that gets run when you return to the menu.
 	 */
-	constructor (displayName: string, menuVoiceName: Sound, id: string, text: string[], isShown: () => boolean = () => true, onEnter: () => number = () => 0, onFinish?: () => void) {
-		this.displayName = displayName
+	constructor (menuVoiceName: Sound, id: string, text: string[], isShown: () => boolean = () => true, onEnter: () => number = () => 0, onFinish?: () => void) {
 		this.menuVoiceName = menuVoiceName
 		this.id = id
 		this.text = text
