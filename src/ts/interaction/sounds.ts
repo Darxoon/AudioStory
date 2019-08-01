@@ -114,8 +114,8 @@ function playBuffer(audioBuffer: AudioBuffer, gain = 1, pan = 0, id?: string, be
 
 }
 
-export function play(sound: Sound | Sound[], gain = 1, pan = 0, id?: string, behavior?: () => void, onEnd?: () => void) {
-
+export function play(sound: Sound | Sound[], gain = 1, pan = 0, id?: string, behavior?: () => void, onEnd = () => {}) {
+	console.log(sound)
 	return new Promise<void>((resolve, reject) => {
 
 		try {
@@ -130,20 +130,20 @@ export function play(sound: Sound | Sound[], gain = 1, pan = 0, id?: string, beh
 					else
 						return soundLib[value.name]
 				})), gain, pan, id, behavior, () => {
-					onEnd();
+					onEnd()
 					resolve()
 				})
 			} else {
-
+				console.log(sound)
 				// if it's a string, convert it to an object
 				if (typeof sound === 'string')
 					sound = {type: 'file', name: sound}
-
+				console.log(sound)
 				// if it's a file, play item from soundLib
 				if (sound.type === 'file') {
 					if (soundLib[sound.name]) {
 						playBuffer(soundLib[sound.name], gain, pan, id, behavior, () => {
-							onEnd();
+							onEnd()
 							resolve()
 						})
 					} else
@@ -152,7 +152,7 @@ export function play(sound: Sound | Sound[], gain = 1, pan = 0, id?: string, beh
 				} else {
 					// play text-to-speech
 					playBuffer(textToSpeech(sound), gain, pan, id, behavior, () => {
-						onEnd();
+						onEnd()
 						resolve()
 					})
 				}
