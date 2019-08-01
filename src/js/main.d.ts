@@ -13,7 +13,7 @@ declare module "interaction/sounds" {
     export function loadAndPlaySound(): void;
     export function addSound(name: string, path: string): void;
     export function loadAllSounds(): void;
-    export function play(sound: Sound, gain?: number, pan?: number, sinPan?: boolean): void;
+    export function play(sound: Sound | Sound[], gain?: number, pan?: number, sinPan?: boolean): void;
 }
 declare module "main/state" {
     /**
@@ -39,16 +39,20 @@ declare module "place/place" {
     /**
      * An element in the menu screen
      */
+    import { Sound } from "interaction/sound";
     export interface Place {
         displayName: string;
+        menuVoiceName: Sound;
         id: string;
         isShown: () => boolean;
     }
 }
 declare module "place/dialogue" {
     import { Place } from "place/place";
+    import { Sound } from "interaction/sound";
     export class Dialogue implements Place {
         displayName: string;
+        menuVoiceName: Sound;
         id: string;
         text: string[];
         isShown: () => boolean;
@@ -56,14 +60,15 @@ declare module "place/dialogue" {
         onFinish: () => void | undefined;
         /**
          * A dialogue that can be selected in the menu. It can be a person, a sign or other things with text, or just a script that gets run.
-         * @param displayName The name to read when you scroll over it in the menu.
+         * @param displayName The name to show in debug view when you scroll over it in the menu.
+         * @param menuVoiceName The name to play when you scroll over this in the menu.
          * @param id The id used to address this place.
          * @param text The text to read. The first function
          * @param isShown A function that determines whether or not it should show this dialogue
          * @param onEnter The function that gets run when you enter this place. Decides which text to read.
          * @param onFinish The function that gets run when you return to the menu.
          */
-        constructor(displayName: string, id: string, text: string[], isShown?: () => boolean, onEnter?: () => number, onFinish?: () => void);
+        constructor(displayName: string, menuVoiceName: Sound, id: string, text: string[], isShown?: () => boolean, onEnter?: () => number, onFinish?: () => void);
         /**
          * It exits from this dialogue.
          * @param finish Does onFinish?() get run?
@@ -153,6 +158,7 @@ declare module "place/enemy" {
     import { Sound } from "interaction/sound";
     export abstract class Enemy implements Place {
         displayName: string;
+        menuVoiceName: Sound;
         id: string;
         isShown: () => boolean;
         fightName: Sound;

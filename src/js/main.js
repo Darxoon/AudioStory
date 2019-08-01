@@ -60,43 +60,73 @@ define("interaction/sounds", ["require", "exports"], function (require, exports)
         console.log(soundLib);
     }
     exports.loadAllSounds = loadAllSounds;
+    function combineAudioBuffers(audioBuffers) {
+        // iterate through channels
+        const minChannelAmount = audioBuffers.reduce((previousValue, currentValue) => { console.log(currentValue); return Math.min(previousValue, currentValue.numberOfChannels); }, 100), combinedDuration = audioBuffers.reduce((previousValue, currentValue) => { return previousValue + currentValue.length; }, 0), newBuffer = context.createBuffer(minChannelAmount, combinedDuration, audioBuffers[0].sampleRate);
+        for (let i = 0; i < minChannelAmount; i++) {
+            const channelData = newBuffer.getChannelData(i);
+            // iterate through audioBuffers
+            for (let j = 0, channelPosition = 0; j < audioBuffers.length; j++) {
+                channelData.set(audioBuffers[j].getChannelData(i), channelPosition);
+                channelPosition += audioBuffers[j].length;
+            }
+        }
+        return newBuffer;
+    }
+    function textToSpeech(sound) {
+        console.log('text to speech:', sound);
+        return soundLib.tts_placeholder;
+    }
+    function playBuffer(audioBuffer, gain = 1, pan = 0, sinPanning = false) {
+        const source = context.createBufferSource();
+        source.buffer = audioBuffer;
+        const gainNode = context.createGain();
+        gainNode.gain.value = gain;
+        source.connect(gainNode);
+        const pannerNode = context.createStereoPanner();
+        pannerNode.pan.value = pan;
+        gainNode.connect(pannerNode);
+        pannerNode.connect(context.destination);
+        source.start();
+        if (sinPanning) {
+            let interval;
+            let count = 0;
+            interval = setInterval(() => {
+                pannerNode.pan.value = Math.sin(pan);
+                pan += 0.01;
+                count++;
+            }, 1);
+            source.addEventListener('ended', () => {
+                clearInterval(interval);
+            });
+        }
+    }
     function play(sound, gain = 1, pan = 0, sinPan = false) {
+        // if it's an array, combine it and play it
+        if (sound instanceof Array) {
+            return playBuffer(combineAudioBuffers(sound.map(value => {
+                if (typeof value === 'string')
+                    value = { type: 'file', name: value };
+                if (value.type === 'tts')
+                    return textToSpeech(value);
+                else
+                    return soundLib[value.name];
+            })), gain, pan, sinPan);
+        }
+        // if it's a string, convert it to an object
         if (typeof sound === 'string')
             sound = { type: 'file', name: sound };
+        // if it's a file, play item from soundLib
         if (sound.type === 'file') {
             if (soundLib[sound.name]) {
-                // play file
-                const source = context.createBufferSource();
-                source.buffer = soundLib[sound.name];
-                const gainNode = context.createGain();
-                gainNode.gain.value = gain;
-                source.connect(gainNode);
-                const pannerNode = context.createStereoPanner();
-                pannerNode.pan.value = pan;
-                gainNode.connect(pannerNode);
-                pannerNode.connect(context.destination);
-                source.start();
-                if (sinPan) {
-                    let interval;
-                    let count = 0;
-                    interval = setInterval(() => {
-                        pannerNode.pan.value = Math.sin(pan);
-                        pan += 0.01;
-                        count++;
-                    }, 1);
-                    source.addEventListener('ended', () => {
-                        clearInterval(interval);
-                    });
-                }
+                playBuffer(soundLib[sound.name]);
             }
             else
                 console.error(`Sound called '${sound.name} doesn't exist`);
         }
-        else {
-            // text to speech
-            // temporarily, text to speech will play the placeholder file
-            play('tts_placeholder');
-        }
+        else
+            // play text-to-speech
+            playBuffer(textToSpeech(sound), gain, pan, sinPan);
     }
     exports.play = play;
 });
@@ -137,15 +167,17 @@ define("place/dialogue", ["require", "exports", "main/main", "main/state"], func
     class Dialogue {
         /**
          * A dialogue that can be selected in the menu. It can be a person, a sign or other things with text, or just a script that gets run.
-         * @param displayName The name to read when you scroll over it in the menu.
+         * @param displayName The name to show in debug view when you scroll over it in the menu.
+         * @param menuVoiceName The name to play when you scroll over this in the menu.
          * @param id The id used to address this place.
          * @param text The text to read. The first function
          * @param isShown A function that determines whether or not it should show this dialogue
          * @param onEnter The function that gets run when you enter this place. Decides which text to read.
          * @param onFinish The function that gets run when you return to the menu.
          */
-        constructor(displayName, id, text, isShown = () => true, onEnter = () => 0, onFinish) {
+        constructor(displayName, menuVoiceName, id, text, isShown = () => true, onEnter = () => 0, onFinish) {
             this.displayName = displayName;
+            this.menuVoiceName = menuVoiceName;
             this.id = id;
             this.text = text;
             this.isShown = isShown;
@@ -501,16 +533,16 @@ define("main/main", ["require", "exports", "main/state", "place/dialogue", "inte
         static registerPlaces() {
             this.places = {
                 Kottlington: [
-                    new dialogue_3.Dialogue("Grandma's cottage", "kottlington.Grandma", ["Hey! I don't want you, go to Battlington."], undefined, undefined, () => saveHandler_2.SaveHandler.setBoolean('story progression', 'talkedToGrandma', true)),
-                    new dialogue_3.Dialogue("A weak rat", "kottlington.weakRat$1", ["Hey. I'm nice to you. Please go away."]),
-                    new dialogue_3.Dialogue("Travel to Battlington", "kottlington.Battlington", ["You go to Battlington"], () => saveHandler_2.SaveHandler.getBoolean('story progression', 'talkedToGrandma'), undefined, () => traveling_2.Traveling.changeLocation('Battlington'))
+                    new dialogue_3.Dialogue("Grandma's cottage", 'tts_placeholder', "kottlington.Grandma", ["Hey! I don't want you, go to Battlington."], undefined, undefined, () => saveHandler_2.SaveHandler.setBoolean('story progression', 'talkedToGrandma', true)),
+                    new dialogue_3.Dialogue("A weak rat", 'tts_placeholder', "kottlington.weakRat$1", ["Hey. I'm nice to you. Please go away."]),
+                    new dialogue_3.Dialogue("Travel to Battlington", 'tts_placeholder', "kottlington.Battlington", ["You go to Battlington"], () => saveHandler_2.SaveHandler.getBoolean('story progression', 'talkedToGrandma'), undefined, () => traveling_2.Traveling.changeLocation('Battlington'))
                 ],
                 Battlington: [
-                    new dialogue_3.Dialogue("The pub 'the great dragon'", "battlington.Pub", ["Hey!"]),
-                    new dialogue_3.Dialogue("A slime", "battlington.slime$1", ["Hey. I'm nice to you. Please go away."]),
-                    new dialogue_3.Dialogue("Kate's house", "battlington.Kate", ["Hey! I'm Kate."]),
-                    new dialogue_3.Dialogue("An egg with legs", "battlington.egg$1", ["Hey. I'm nice to you. Please go away."], undefined, undefined, () => { console.log('thanks'); }),
-                    new dialogue_3.Dialogue("Justus's house", "battlington.Justus", ["Hey! I'm Justus."]),
+                    new dialogue_3.Dialogue("The pub 'the great dragon'", 'tts_placeholder', "battlington.Pub", ["Hey!"]),
+                    new dialogue_3.Dialogue("A slime", 'tts_placeholder', "battlington.slime$1", ["Hey. I'm nice to you. Please go away."]),
+                    new dialogue_3.Dialogue("Kate's house", 'tts_placeholder', "battlington.Kate", ["Hey! I'm Kate."]),
+                    new dialogue_3.Dialogue("An egg with legs", 'tts_placeholder', "battlington.egg$1", ["Hey. I'm nice to you. Please go away."], undefined, undefined, () => { console.log('thanks'); }),
+                    new dialogue_3.Dialogue("Justus's house", 'tts_placeholder', "battlington.Justus", ["Hey! I'm Justus."]),
                 ]
             };
         }
@@ -542,6 +574,8 @@ define("main/main", ["require", "exports", "main/state", "place/dialogue", "inte
         addSound('selection_confirmed');
         addSound('selection_not_possible');
         addSound('tts_placeholder');
+        addSound('tts_joins_fight');
+        addSound('enemy_rat_fight');
         Sounds.loadAllSounds();
         // do the visuals
         let table = document.getElementById('location');
