@@ -116,34 +116,53 @@ function playBuffer(audioBuffer: AudioBuffer, gain = 1, pan = 0, id?: string, be
 
 export function play(sound: Sound | Sound[], gain = 1, pan = 0, id?: string, behavior?: () => void, onEnd?: () => void) {
 
-	// if it's an array, combine it and play it
-	if(sound instanceof Array) {
-		return playBuffer(combineAudioBuffers(sound.map(value => {
-			if(typeof value === 'string')
-				value = { type: 'file', name: value }
+	return new Promise<void>((resolve, reject) => {
 
-			if(value.type === 'tts')
-				return textToSpeech(value)
-			else
-				return soundLib[value.name]
-		})), gain, pan, id, behavior, onEnd)
-	}
+		try {
+			// if it's an array, combine it and play it
+			if (sound instanceof Array) {
+				playBuffer(combineAudioBuffers(sound.map(value => {
+					if (typeof value === 'string')
+						value = {type: 'file', name: value}
 
-	// if it's a string, convert it to an object
-	if(typeof sound === 'string')
-		sound = { type: 'file', name: sound }
+					if (value.type === 'tts')
+						return textToSpeech(value)
+					else
+						return soundLib[value.name]
+				})), gain, pan, id, behavior, () => {
+					onEnd();
+					resolve()
+				})
+			} else {
 
-	// if it's a file, play item from soundLib
-	if(sound.type === 'file') {
-		if(soundLib[sound.name]) {
-			playBuffer(soundLib[sound.name], gain, pan, id, behavior, onEnd)
-		} else
-			console.error(`Sound called '${sound.name} doesn't exist`)
+				// if it's a string, convert it to an object
+				if (typeof sound === 'string')
+					sound = {type: 'file', name: sound}
 
-	} else {
-		// play text-to-speech
-		playBuffer(textToSpeech(sound), gain, pan, id, behavior, onEnd)
-	}
+				// if it's a file, play item from soundLib
+				if (sound.type === 'file') {
+					if (soundLib[sound.name]) {
+						playBuffer(soundLib[sound.name], gain, pan, id, behavior, () => {
+							onEnd();
+							resolve()
+						})
+					} else
+						console.error(`Sound called '${sound.name} doesn't exist`)
+
+				} else {
+					// play text-to-speech
+					playBuffer(textToSpeech(sound), gain, pan, id, behavior, () => {
+						onEnd();
+						resolve()
+					})
+				}
+
+			}
+		} catch (e) {
+			reject(e)
+		}
+
+	})
 }
 
 export function stop(id: string) {
