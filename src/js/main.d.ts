@@ -55,7 +55,7 @@ declare module "place/dialogue" {
         displayName: string;
         menuVoiceName: Sound;
         id: string;
-        text: string[];
+        text: Sound[];
         isShown: () => boolean;
         onEnter: () => number;
         onFinish: () => void | undefined;
@@ -68,7 +68,7 @@ declare module "place/dialogue" {
          * @param onEnter The function that gets run when you enter this place. Decides which text to read.
          * @param onFinish The function that gets run when you return to the menu.
          */
-        constructor(menuVoiceName: Sound, id: string, text: string[], isShown?: () => boolean, onEnter?: () => number, onFinish?: () => void);
+        constructor(menuVoiceName: Sound, id: string, text: Sound[], isShown?: () => boolean, onEnter?: () => number, onFinish?: () => void);
         /**
          * It exits from this dialogue.
          * @param finish Does onFinish?() get run?
