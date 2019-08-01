@@ -13,7 +13,7 @@ declare module "interaction/sounds" {
     export function loadAndPlaySound(): void;
     export function addSound(name: string, path: string): void;
     export function loadAllSounds(): void;
-    export function play(sound: Sound | Sound[], gain?: number, pan?: number, sinPan?: boolean): void;
+    export function play(sound: Sound | Sound[], gain?: number, pan?: number, behavior?: () => void, onEnd?: () => void): void;
 }
 declare module "main/state" {
     /**

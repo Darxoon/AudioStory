@@ -77,7 +77,7 @@ define("interaction/sounds", ["require", "exports"], function (require, exports)
         console.log('text to speech:', sound);
         return soundLib.tts_placeholder;
     }
-    function playBuffer(audioBuffer, gain = 1, pan = 0, sinPanning = false) {
+    function playBuffer(audioBuffer, gain = 1, pan = 0, behavior, onEnd) {
         const source = context.createBufferSource();
         source.buffer = audioBuffer;
         const gainNode = context.createGain();
@@ -88,20 +88,19 @@ define("interaction/sounds", ["require", "exports"], function (require, exports)
         gainNode.connect(pannerNode);
         pannerNode.connect(context.destination);
         source.start();
-        if (sinPanning) {
+        if (behavior) {
             let interval;
-            let count = 0;
-            interval = setInterval(() => {
-                pannerNode.pan.value = Math.sin(pan);
-                pan += 0.01;
-                count++;
-            }, 1);
+            interval = setInterval(behavior, 1);
             source.addEventListener('ended', () => {
                 clearInterval(interval);
+                if (onEnd)
+                    onEnd();
             });
         }
+        else if (onEnd)
+            source.addEventListener('ended', onEnd);
     }
-    function play(sound, gain = 1, pan = 0, sinPan = false) {
+    function play(sound, gain = 1, pan = 0, behavior, onEnd) {
         // if it's an array, combine it and play it
         if (sound instanceof Array) {
             return playBuffer(combineAudioBuffers(sound.map(value => {
@@ -111,7 +110,7 @@ define("interaction/sounds", ["require", "exports"], function (require, exports)
                     return textToSpeech(value);
                 else
                     return soundLib[value.name];
-            })), gain, pan, sinPan);
+            })), gain, pan, behavior, onEnd);
         }
         // if it's a string, convert it to an object
         if (typeof sound === 'string')
@@ -119,14 +118,14 @@ define("interaction/sounds", ["require", "exports"], function (require, exports)
         // if it's a file, play item from soundLib
         if (sound.type === 'file') {
             if (soundLib[sound.name]) {
-                playBuffer(soundLib[sound.name]);
+                playBuffer(soundLib[sound.name], gain, pan, behavior, onEnd);
             }
             else
                 console.error(`Sound called '${sound.name} doesn't exist`);
         }
         else
             // play text-to-speech
-            playBuffer(textToSpeech(sound), gain, pan, sinPan);
+            playBuffer(textToSpeech(sound), gain, pan, behavior, onEnd);
     }
     exports.play = play;
 });
@@ -487,12 +486,15 @@ define("interaction/keyboard/keyboard", ["require", "exports", "main/main", "pla
                     }
                     break;
                 case ' ':
-                    let currentPlace = main_4.Game.getPlaces()[main_4.Game.state.location][main_4.Game.state.selectedPlace];
-                    if (currentPlace instanceof dialogue_2.Dialogue) {
-                        traveling_1.Traveling.openDialogue(main_4.Game.state.selectedPlace);
-                    }
-                    else
-                        console.log("let's fight, I guess");
+                    Sounds.play('selection_confirmed', 1, 0, undefined, () => {
+                        let currentPlace = main_4.Game.getPlaces()[main_4.Game.state.location][main_4.Game.state.selectedPlace];
+                        if (currentPlace instanceof dialogue_2.Dialogue) {
+                            traveling_1.Traveling.openDialogue(main_4.Game.state.selectedPlace);
+                        }
+                        else
+                            console.log("let's fight, I guess");
+                        visual_3.drawTable();
+                    });
                     break;
             }
             /* #endregion */
