@@ -95,19 +95,19 @@ function keyPressed(e: KeyboardEvent) {
 		/* region While being in a DIALOGUE */
 		switch (e.key) {
 
-			case 'Escape':
-				let currentPlaceEsc = Game.getPlaces()[Game.state.location][Game.state.selectedPlace]
-				if (currentPlaceEsc instanceof Dialogue) {
-					let currentDialogue: Dialogue = currentPlaceEsc
+			case 'b':
+				let currentPlaceB = Game.getPlaces()[Game.state.location][Game.state.selectedPlace]
+				if (currentPlaceB instanceof Dialogue) {
+					let currentDialogue: Dialogue = currentPlaceB
 					clearTimeout(Game.state.timeOutID)
 					currentDialogue.exit(false)
 				}
 				break
 
 			case ' ':
-				let currentPlaceE = Game.getPlaces()[Game.state.location][Game.state.selectedPlace]
-				if (currentPlaceE instanceof Dialogue) {
-					let currentDialogue: Dialogue = currentPlaceE
+				let currentPlaceSpace = Game.getPlaces()[Game.state.location][Game.state.selectedPlace]
+				if (currentPlaceSpace instanceof Dialogue) {
+					let currentDialogue: Dialogue = currentPlaceSpace
 					clearTimeout(Game.state.timeOutID)
 					currentDialogue.exit(true)
 				}
