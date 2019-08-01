@@ -61,16 +61,17 @@ function keyPressed(e: KeyboardEvent) {
 
 			case ' ':
 
-				let currentPlace = Game.getPlaces()[Game.state.location][Game.state.selectedPlace]
-				if (currentPlace instanceof Dialogue) {
+				Sounds.play('selection_confirmed', 1, 0, undefined, () => {
+					let currentPlace = Game.getPlaces()[Game.state.location][Game.state.selectedPlace]
+					if (currentPlace instanceof Dialogue) {
 
-					Traveling.openDialogue(Game.state.selectedPlace)
+						Traveling.openDialogue(Game.state.selectedPlace)
 
-				} else
-					console.log("let's fight, I guess")
-
+					} else
+						console.log("let's fight, I guess")
+					drawTable()
+				})
 				break
-
 		}
 
 		/* #endregion */

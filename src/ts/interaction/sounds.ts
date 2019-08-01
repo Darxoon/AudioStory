@@ -74,7 +74,7 @@ function textToSpeech(sound: {type: 'tts', voice: string, text: string}): AudioB
 	return soundLib.tts_placeholder
 }
 
-function playBuffer(audioBuffer: AudioBuffer, gain = 1, pan = 0, sinPanning = false) {
+function playBuffer(audioBuffer: AudioBuffer, gain = 1, pan = 0, behavior?: () => void, onEnd?: () => void) {
 
 	const source = context.createBufferSource()
 	source.buffer = audioBuffer
@@ -91,26 +91,23 @@ function playBuffer(audioBuffer: AudioBuffer, gain = 1, pan = 0, sinPanning = fa
 	source.start()
 
 
-	if (sinPanning) {
+	if (behavior) {
 
 		let interval: NodeJS.Timeout
-		let count = 0
 
-		interval = setInterval(() => {
-			pannerNode.pan.value = Math.sin(pan)
-			pan += 0.01
-			count++
-
-		}, 1)
+		interval = setInterval(behavior, 1)
 
 		source.addEventListener('ended', () => {
 			clearInterval(interval)
+			if(onEnd)
+				onEnd()
 		})
-	}
+	} else if(onEnd)
+		source.addEventListener('ended', onEnd)
 
 }
 
-export function play(sound: Sound | Sound[], gain = 1, pan = 0, sinPan = false) {
+export function play(sound: Sound | Sound[], gain = 1, pan = 0, behavior?: () => void, onEnd?: () => void) {
 
 	// if it's an array, combine it and play it
 	if(sound instanceof Array) {
@@ -122,7 +119,7 @@ export function play(sound: Sound | Sound[], gain = 1, pan = 0, sinPan = false) 
 				return textToSpeech(value)
 			else
 				return soundLib[value.name]
-		})), gain, pan, sinPan)
+		})), gain, pan, behavior, onEnd)
 	}
 
 	// if it's a string, convert it to an object
@@ -132,11 +129,11 @@ export function play(sound: Sound | Sound[], gain = 1, pan = 0, sinPan = false) 
 	// if it's a file, play item from soundLib
 	if(sound.type === 'file') {
 		if(soundLib[sound.name]) {
-			playBuffer(soundLib[sound.name])
+			playBuffer(soundLib[sound.name], gain, pan, behavior, onEnd)
 		} else
 			console.error(`Sound called '${sound.name} doesn't exist`)
 
 	} else
 		// play text-to-speech
-		playBuffer(textToSpeech(sound), gain, pan, sinPan)
+		playBuffer(textToSpeech(sound), gain, pan, behavior, onEnd)
 }
