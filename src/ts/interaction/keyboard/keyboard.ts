@@ -44,11 +44,11 @@ function keyPressed(e: KeyboardEvent) {
 						Game.state.selectedPlace++
 				} else {
 					canEnterPlace = false
-					Sounds.play('moved_selection', 1, 0, undefined, undefined, () => {
-						Sounds.play(currentLocation[Game.state.selectedPlace].menuVoiceName, 1, 0, 'menuVoiceName', undefined, () => {
-							canEnterPlace = true
+					Sounds.play('moved_selection')
+						.then(() => {
+							return Sounds.play(currentLocation[Game.state.selectedPlace].menuVoiceName, 1, 0, 'menuVoiceName')
 						})
-					})
+						.then(() => canEnterPlace = true)
 				}
 				break
 
@@ -63,27 +63,28 @@ function keyPressed(e: KeyboardEvent) {
 						Game.state.selectedPlace--
 				} else {
 					canEnterPlace = false
-					Sounds.play('moved_selection', 1, 0, undefined, undefined, () => {
-						Sounds.play(currentLocation[Game.state.selectedPlace].menuVoiceName, 1, 0, 'menuVoiceName', undefined, () => {
-							canEnterPlace = true
+					Sounds.play('moved_selection')
+						.then(() => {
+							return Sounds.play(currentLocation[Game.state.selectedPlace].menuVoiceName, 1, 0, 'menuVoiceName')
 						})
-					})
+						.then(() => canEnterPlace = true)
 				}
 				break
 
 			case ' ':
 
 				if(canEnterPlace) {
-					Sounds.play('selection_confirmed', 1, 0, undefined, () => {
-						let currentPlace = Game.getPlaces()[Game.state.location][Game.state.selectedPlace]
-						if (currentPlace instanceof Dialogue) {
+					Sounds.play('selection_confirmed')
+						.then(() => {
+							let currentPlace = Game.getPlaces()[Game.state.location][Game.state.selectedPlace]
+							if (currentPlace instanceof Dialogue) {
 
-							Traveling.openDialogue(Game.state.selectedPlace)
+								Traveling.openDialogue(Game.state.selectedPlace)
 
-						} else
-							console.log("let's fight, I guess")
-						drawTable()
-					})
+							} else
+								console.log("let's fight, I guess")
+							drawTable()
+						})
 					Game.state.status = Status.NONE
 				}
 
