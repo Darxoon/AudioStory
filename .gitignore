@@ -1,0 +1,3 @@
+src/sounds/*_data/*
+src/sounds/*.aup
+node_modules/*
