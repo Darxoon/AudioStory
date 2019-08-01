@@ -13,7 +13,7 @@ declare module "interaction/sounds" {
     export function loadAndPlaySound(): void;
     export function addSound(name: string, path: string): void;
     export function loadAllSounds(): void;
-    export function play(sound: Sound | Sound[], gain?: number, pan?: number, behavior?: () => void, onEnd?: () => void): void;
+    export function play(sound: Sound | Sound[], gain?: number, pan?: number, id?: string, behavior?: () => void, onEnd?: () => void): void;
 }
 declare module "main/state" {
     /**
@@ -41,7 +41,6 @@ declare module "place/place" {
      */
     import { Sound } from "interaction/sound";
     export interface Place {
-        displayName: string;
         menuVoiceName: Sound;
         id: string;
         isShown: () => boolean;
@@ -60,7 +59,6 @@ declare module "place/dialogue" {
         onFinish: () => void | undefined;
         /**
          * A dialogue that can be selected in the menu. It can be a person, a sign or other things with text, or just a script that gets run.
-         * @param displayName The name to show in debug view when you scroll over it in the menu.
          * @param menuVoiceName The name to play when you scroll over this in the menu.
          * @param id The id used to address this place.
          * @param text The text to read. The first function
@@ -68,7 +66,7 @@ declare module "place/dialogue" {
          * @param onEnter The function that gets run when you enter this place. Decides which text to read.
          * @param onFinish The function that gets run when you return to the menu.
          */
-        constructor(displayName: string, menuVoiceName: Sound, id: string, text: string[], isShown?: () => boolean, onEnter?: () => number, onFinish?: () => void);
+        constructor(menuVoiceName: Sound, id: string, text: string[], isShown?: () => boolean, onEnter?: () => number, onFinish?: () => void);
         /**
          * It exits from this dialogue.
          * @param finish Does onFinish?() get run?
@@ -157,7 +155,6 @@ declare module "place/enemy" {
     import { Place } from "place/place";
     import { Sound } from "interaction/sound";
     export abstract class Enemy implements Place {
-        displayName: string;
         menuVoiceName: Sound;
         id: string;
         isShown: () => boolean;

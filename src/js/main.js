@@ -37,6 +37,7 @@ define("interaction/sounds", ["require", "exports"], function (require, exports)
     const context = new AudioContext();
     const soundLoadQueue = [];
     const soundLib = {};
+    const soundsPlayingWithID = new Map();
     function addSound(name, path) {
         soundLoadQueue.push({ name, path: path });
     }
@@ -77,7 +78,7 @@ define("interaction/sounds", ["require", "exports"], function (require, exports)
         console.log('text to speech:', sound);
         return soundLib.tts_placeholder;
     }
-    function playBuffer(audioBuffer, gain = 1, pan = 0, behavior, onEnd) {
+    function playBuffer(audioBuffer, gain = 1, pan = 0, id, behavior, onEnd) {
         const source = context.createBufferSource();
         source.buffer = audioBuffer;
         const gainNode = context.createGain();
@@ -88,6 +89,11 @@ define("interaction/sounds", ["require", "exports"], function (require, exports)
         gainNode.connect(pannerNode);
         pannerNode.connect(context.destination);
         source.start();
+        if (id) {
+            if (soundsPlayingWithID.has(id))
+                soundsPlayingWithID.get(id).stop();
+            soundsPlayingWithID.set(id, source);
+        }
         if (behavior) {
             let interval;
             interval = setInterval(behavior, 1);
@@ -100,7 +106,7 @@ define("interaction/sounds", ["require", "exports"], function (require, exports)
         else if (onEnd)
             source.addEventListener('ended', onEnd);
     }
-    function play(sound, gain = 1, pan = 0, behavior, onEnd) {
+    function play(sound, gain = 1, pan = 0, id, behavior, onEnd) {
         // if it's an array, combine it and play it
         if (sound instanceof Array) {
             return playBuffer(combineAudioBuffers(sound.map(value => {
@@ -110,7 +116,7 @@ define("interaction/sounds", ["require", "exports"], function (require, exports)
                     return textToSpeech(value);
                 else
                     return soundLib[value.name];
-            })), gain, pan, behavior, onEnd);
+            })), gain, pan, id, behavior, onEnd);
         }
         // if it's a string, convert it to an object
         if (typeof sound === 'string')
@@ -118,14 +124,15 @@ define("interaction/sounds", ["require", "exports"], function (require, exports)
         // if it's a file, play item from soundLib
         if (sound.type === 'file') {
             if (soundLib[sound.name]) {
-                playBuffer(soundLib[sound.name], gain, pan, behavior, onEnd);
+                playBuffer(soundLib[sound.name], gain, pan, id, behavior, onEnd);
             }
             else
                 console.error(`Sound called '${sound.name} doesn't exist`);
         }
-        else
+        else {
             // play text-to-speech
-            playBuffer(textToSpeech(sound), gain, pan, behavior, onEnd);
+            playBuffer(textToSpeech(sound), gain, pan, id, behavior, onEnd);
+        }
     }
     exports.play = play;
 });
@@ -166,7 +173,6 @@ define("place/dialogue", ["require", "exports", "main/main", "main/state"], func
     class Dialogue {
         /**
          * A dialogue that can be selected in the menu. It can be a person, a sign or other things with text, or just a script that gets run.
-         * @param displayName The name to show in debug view when you scroll over it in the menu.
          * @param menuVoiceName The name to play when you scroll over this in the menu.
          * @param id The id used to address this place.
          * @param text The text to read. The first function
@@ -174,8 +180,7 @@ define("place/dialogue", ["require", "exports", "main/main", "main/state"], func
          * @param onEnter The function that gets run when you enter this place. Decides which text to read.
          * @param onFinish The function that gets run when you return to the menu.
          */
-        constructor(displayName, menuVoiceName, id, text, isShown = () => true, onEnter = () => 0, onFinish) {
-            this.displayName = displayName;
+        constructor(menuVoiceName, id, text, isShown = () => true, onEnter = () => 0, onFinish) {
             this.menuVoiceName = menuVoiceName;
             this.id = id;
             this.text = text;
@@ -292,7 +297,6 @@ define("util/saveHandler", ["require", "exports", "main/main", "interaction/visu
         function saveToBrowserData(slot = "Unnamed") {
             const encryptedSave = getEncryptedSave();
             localStorage.setItem(`slot:${slot}`, encryptedSave);
-            alert('Saved!');
         }
         SaveHandler.saveToBrowserData = saveToBrowserData;
         function loadFromBrowserData(slot = "Unnamed") {
@@ -300,7 +304,6 @@ define("util/saveHandler", ["require", "exports", "main/main", "interaction/visu
             if (!text)
                 throw "That slot doesn't exist!";
             loadEncryptedSave(text);
-            alert('Loaded!');
         }
         SaveHandler.loadFromBrowserData = loadFromBrowserData;
         //endregion
@@ -469,7 +472,9 @@ define("interaction/keyboard/keyboard", ["require", "exports", "main/main", "pla
                             main_4.Game.state.selectedPlace++;
                     }
                     else {
-                        Sounds.play('moved_selection');
+                        Sounds.play('moved_selection', 1, 0, undefined, undefined, () => {
+                            Sounds.play(currentLocation[main_4.Game.state.selectedPlace].menuVoiceName, 1, 0, 'menuVoiceName');
+                        });
                     }
                     break;
                 case 's':
@@ -482,7 +487,9 @@ define("interaction/keyboard/keyboard", ["require", "exports", "main/main", "pla
                             main_4.Game.state.selectedPlace--;
                     }
                     else {
-                        Sounds.play('moved_selection');
+                        Sounds.play('moved_selection', 1, 0, undefined, undefined, () => {
+                            Sounds.play(currentLocation[main_4.Game.state.selectedPlace].menuVoiceName, 1, 0, 'menuVoiceName');
+                        });
                     }
                     break;
                 case ' ':
@@ -535,16 +542,16 @@ define("main/main", ["require", "exports", "main/state", "place/dialogue", "inte
         static registerPlaces() {
             this.places = {
                 Kottlington: [
-                    new dialogue_3.Dialogue("Grandma's cottage", 'tts_placeholder', "kottlington.Grandma", ["Hey! I don't want you, go to Battlington."], undefined, undefined, () => saveHandler_2.SaveHandler.setBoolean('story progression', 'talkedToGrandma', true)),
-                    new dialogue_3.Dialogue("A weak rat", 'tts_placeholder', "kottlington.weakRat$1", ["Hey. I'm nice to you. Please go away."]),
-                    new dialogue_3.Dialogue("Travel to Battlington", 'tts_placeholder', "kottlington.Battlington", ["You go to Battlington"], () => saveHandler_2.SaveHandler.getBoolean('story progression', 'talkedToGrandma'), undefined, () => traveling_2.Traveling.changeLocation('Battlington'))
+                    new dialogue_3.Dialogue('tts_placeholder', "kottlington.Grandma", ["Hey! I don't want you, go to Battlington."], undefined, undefined, () => saveHandler_2.SaveHandler.setBoolean('story progression', 'talkedToGrandma', true)),
+                    new dialogue_3.Dialogue('tts_placeholder', "kottlington.weakRat$1", ["Hey. I'm nice to you. Please go away."]),
+                    new dialogue_3.Dialogue('tts_placeholder', "kottlington.Battlington", ["You go to Battlington"], () => saveHandler_2.SaveHandler.getBoolean('story progression', 'talkedToGrandma'), undefined, () => traveling_2.Traveling.changeLocation('Battlington'))
                 ],
                 Battlington: [
-                    new dialogue_3.Dialogue("The pub 'the great dragon'", 'tts_placeholder', "battlington.Pub", ["Hey!"]),
-                    new dialogue_3.Dialogue("A slime", 'tts_placeholder', "battlington.slime$1", ["Hey. I'm nice to you. Please go away."]),
-                    new dialogue_3.Dialogue("Kate's house", 'tts_placeholder', "battlington.Kate", ["Hey! I'm Kate."]),
-                    new dialogue_3.Dialogue("An egg with legs", 'tts_placeholder', "battlington.egg$1", ["Hey. I'm nice to you. Please go away."], undefined, undefined, () => { console.log('thanks'); }),
-                    new dialogue_3.Dialogue("Justus's house", 'tts_placeholder', "battlington.Justus", ["Hey! I'm Justus."]),
+                    new dialogue_3.Dialogue('tts_placeholder', "battlington.Pub", ["Hey!"]),
+                    new dialogue_3.Dialogue('tts_placeholder', "battlington.slime$1", ["Hey. I'm nice to you. Please go away."]),
+                    new dialogue_3.Dialogue('tts_placeholder', "battlington.Kate", ["Hey! I'm Kate."]),
+                    new dialogue_3.Dialogue('tts_placeholder', "battlington.egg$1", ["Hey. I'm nice to you. Please go away."], undefined, undefined, () => { console.log('thanks'); }),
+                    new dialogue_3.Dialogue('tts_placeholder', "battlington.Justus", ["Hey! I'm Justus."]),
                 ]
             };
         }
@@ -610,6 +617,7 @@ define("interaction/visual", ["require", "exports", "main/main", "main/state"], 
     (function (Visual) {
     })(Visual = exports.Visual || (exports.Visual = {}));
     function drawTable() {
+        // check whether to show the dialogue box or menu table
         if (main_5.Game.state.status === state_5.Status.DIALOGUE) {
             Visual.textBox.style.display = null;
             Visual.table.style.display = 'none';
@@ -626,23 +634,28 @@ define("interaction/visual", ["require", "exports", "main/main", "main/state"], 
         }
         for (let i = 0; i < currentPlace.length; i++) {
             const element = currentPlace[i];
-            addRow(main_5.Game.state.selectedPlace === i, element.isShown() ? element.displayName : `(${element.displayName})...`, element.id, table, element.isShown());
+            addRow(main_5.Game.state.selectedPlace === i, element.menuVoiceName, element.id, table, element.isShown());
         }
     }
     exports.drawTable = drawTable;
     exports.ph = 'My secret Passphrase';
-    function addRow(isSelected, displayName, id, table, isShown) {
-        let row = table.appendChild(document.createElement('tr'));
+    function addRow(isSelected, sound, id, table, isShown) {
+        if (typeof sound === 'string')
+            sound = { type: 'file', name: sound };
+        const row = table.appendChild(document.createElement('tr'));
         row.className = 'locationRow';
-        let selected = document.createElement('td');
+        const selected = document.createElement('td');
         selected.appendChild(document.createTextNode(isSelected ? '>' : isShown ? ' ' : '❌'));
         row.appendChild(selected);
-        let dname = document.createElement('td');
-        dname.appendChild(document.createTextNode(displayName));
-        row.appendChild(dname);
-        let did = document.createElement('td');
-        did.appendChild(document.createTextNode(id));
-        row.appendChild(did);
+        const dSoundName = document.createElement('td');
+        dSoundName.appendChild(document.createTextNode(sound.type === 'file' ? sound.name : sound.text));
+        row.appendChild(dSoundName);
+        const dSoundType = document.createElement('td');
+        dSoundType.appendChild(document.createTextNode(sound.type));
+        row.appendChild(dSoundType);
+        const dId = document.createElement('td');
+        dId.appendChild(document.createTextNode(id));
+        row.appendChild(dId);
     }
 });
 define("place/enemy", ["require", "exports"], function (require, exports) {
