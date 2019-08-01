@@ -106,33 +106,54 @@ define("interaction/sounds", ["require", "exports"], function (require, exports)
         else if (onEnd)
             source.addEventListener('ended', onEnd);
     }
-    function play(sound, gain = 1, pan = 0, id, behavior, onEnd) {
-        // if it's an array, combine it and play it
-        if (sound instanceof Array) {
-            return playBuffer(combineAudioBuffers(sound.map(value => {
-                if (typeof value === 'string')
-                    value = { type: 'file', name: value };
-                if (value.type === 'tts')
-                    return textToSpeech(value);
-                else
-                    return soundLib[value.name];
-            })), gain, pan, id, behavior, onEnd);
-        }
-        // if it's a string, convert it to an object
-        if (typeof sound === 'string')
-            sound = { type: 'file', name: sound };
-        // if it's a file, play item from soundLib
-        if (sound.type === 'file') {
-            if (soundLib[sound.name]) {
-                playBuffer(soundLib[sound.name], gain, pan, id, behavior, onEnd);
+    function play(sound, gain = 1, pan = 0, id, behavior, onEnd = () => { }) {
+        console.log(sound);
+        return new Promise((resolve, reject) => {
+            try {
+                // if it's an array, combine it and play it
+                if (sound instanceof Array) {
+                    playBuffer(combineAudioBuffers(sound.map(value => {
+                        if (typeof value === 'string')
+                            value = { type: 'file', name: value };
+                        if (value.type === 'tts')
+                            return textToSpeech(value);
+                        else
+                            return soundLib[value.name];
+                    })), gain, pan, id, behavior, () => {
+                        onEnd();
+                        resolve();
+                    });
+                }
+                else {
+                    console.log(sound);
+                    // if it's a string, convert it to an object
+                    if (typeof sound === 'string')
+                        sound = { type: 'file', name: sound };
+                    console.log(sound);
+                    // if it's a file, play item from soundLib
+                    if (sound.type === 'file') {
+                        if (soundLib[sound.name]) {
+                            playBuffer(soundLib[sound.name], gain, pan, id, behavior, () => {
+                                onEnd();
+                                resolve();
+                            });
+                        }
+                        else
+                            console.error(`Sound called '${sound.name} doesn't exist`);
+                    }
+                    else {
+                        // play text-to-speech
+                        playBuffer(textToSpeech(sound), gain, pan, id, behavior, () => {
+                            onEnd();
+                            resolve();
+                        });
+                    }
+                }
             }
-            else
-                console.error(`Sound called '${sound.name} doesn't exist`);
-        }
-        else {
-            // play text-to-speech
-            playBuffer(textToSpeech(sound), gain, pan, id, behavior, onEnd);
-        }
+            catch (e) {
+                reject(e);
+            }
+        });
     }
     exports.play = play;
     function stop(id) {
@@ -374,9 +395,10 @@ define("util/saveHandler", ["require", "exports", "main/main", "interaction/visu
         document.getElementById('load_from_browser_data').addEventListener('click', () => loadFromBrowserData(slot));
     })(SaveHandler = exports.SaveHandler || (exports.SaveHandler = {}));
 });
-define("util/traveling", ["require", "exports", "main/main", "util/saveHandler"], function (require, exports, main_3, saveHandler_1) {
+define("util/traveling", ["require", "exports", "main/main", "util/saveHandler", "place/dialogue", "main/state", "interaction/sounds", "interaction/keyboard/keyboard"], function (require, exports, main_3, saveHandler_1, dialogue_1, state_2, Sounds, keyboard_1) {
     "use strict";
     Object.defineProperty(exports, "__esModule", { value: true });
+    Sounds = __importStar(Sounds);
     class Traveling {
         /**
          * Switches to another location.
@@ -394,41 +416,70 @@ define("util/traveling", ["require", "exports", "main/main", "util/saveHandler"]
                 throw `The location '${location}' doesn't exist!`;
         }
         /**
-         * Opens up a dialogue.
-         * @param index Which dialogue index to go
-         * @param location In which location (leave black for loaded location)
-         * @param initialText In which text index to go (optional)
-         * @param runOnEnter (Depends)
+         * Opens a dialogue
+         * @param index The index in the location that gets opened
+         * @param location The location to open the dialogue in, defaults to the current location
+         * @param initialText The text to jump to
+         * @param runOnEnter Whether it should run onEnter, if initialText isn't specified, it will default to true
          */
-        static openDialogue(index, location = main_3.Game.state.location, initialText, runOnEnter) {
+        static openDialogue(index, location = main_3.Game.state.location, initialText, runOnEnter = true) {
+            // get the place
+            const place = main_3.Game.getPlaces()[location][index];
+            // check if it's a dialogue
+            if (place instanceof dialogue_1.Dialogue) {
+                console.log(`Talking to '${place.id}'`);
+                // change status
+                main_3.Game.state.status = state_2.Status.DIALOGUE;
+                // get initialText
+                if (initialText) {
+                    if (runOnEnter)
+                        place.onEnter();
+                }
+                else {
+                    initialText = place.onEnter();
+                }
+                // play sound
+                console.log(place.text, initialText);
+                Sounds.play([place.text[initialText], 'blankspace'], 1, 0, 'currentDialogue')
+                    .then(() => {
+                    main_3.Game.state.status = state_2.Status.MENU;
+                    keyboard_1.Keyboard.canEnterPlace = false;
+                    return Sounds.play(main_3.Game.getPlaces()[main_3.Game.state.location][main_3.Game.state.selectedPlace].menuVoiceName, 1, 0, 'menuVoiceName');
+                })
+                    .then(() => keyboard_1.Keyboard.canEnterPlace = true);
+            }
+            else
+                throw `The place ('${place.id}') is not a dialogue!`;
         }
     }
     exports.Traveling = Traveling;
 });
-define("interaction/keyboard/keyboard", ["require", "exports", "main/main", "place/dialogue", "main/state", "interaction/visual", "util/traveling", "interaction/sounds"], function (require, exports, main_4, dialogue_1, state_2, visual_2, traveling_1, Sounds) {
+define("interaction/keyboard/keyboard", ["require", "exports", "main/main", "place/dialogue", "main/state", "interaction/visual", "util/traveling", "interaction/sounds"], function (require, exports, main_4, dialogue_2, state_3, visual_2, traveling_1, Sounds) {
     "use strict";
     Object.defineProperty(exports, "__esModule", { value: true });
     Sounds = __importStar(Sounds);
-    class Keyboard {
+    var Keyboard;
+    (function (Keyboard) {
+        Keyboard.keys = {
+            'w': false,
+            'a': false,
+            's': false,
+            'd': false,
+            ' ': false,
+            'Escape': false,
+            'e': false,
+        };
+        Keyboard.canEnterPlace = true;
         // public static keyDown   (e: KeyboardEvent) { console.log(this.keys[e.key]) }
-        static keyDown(e) { if (this.keys[e.key] !== undefined)
-            this.keys[e.key] = true; /*console.log(e)*/ /*console.log(e)*/ keyPressed(e); }
-        static keyUp(e) { if (this.keys[e.key] !== undefined)
-            this.keys[e.key] = false; }
-    }
-    Keyboard.keys = {
-        'w': false,
-        'a': false,
-        's': false,
-        'd': false,
-        ' ': false,
-        'Escape': false,
-        'e': false,
-    };
-    exports.Keyboard = Keyboard;
-    let canEnterPlace = true;
+        function keyDown(e) { if (Keyboard.keys[e.key] !== undefined)
+            Keyboard.keys[e.key] = true; /*console.log(e)*/ /*console.log(e)*/ keyPressed(e); }
+        Keyboard.keyDown = keyDown;
+        function keyUp(e) { if (Keyboard.keys[e.key] !== undefined)
+            Keyboard.keys[e.key] = false; }
+        Keyboard.keyUp = keyUp;
+    })(Keyboard = exports.Keyboard || (exports.Keyboard = {}));
     function keyPressed(e) {
-        if (main_4.Game.state.status === state_2.Status.MENU) {
+        if (main_4.Game.state.status === state_3.Status.MENU) {
             /* region While being in the MENU */
             const currentLocation = main_4.Game.getPlaces()[main_4.Game.state.location];
             switch (e.key) {
@@ -442,12 +493,12 @@ define("interaction/keyboard/keyboard", ["require", "exports", "main/main", "pla
                             main_4.Game.state.selectedPlace++;
                     }
                     else {
-                        canEnterPlace = false;
-                        Sounds.play('moved_selection', 1, 0, undefined, undefined, () => {
-                            Sounds.play(currentLocation[main_4.Game.state.selectedPlace].menuVoiceName, 1, 0, 'menuVoiceName', undefined, () => {
-                                canEnterPlace = true;
-                            });
-                        });
+                        Keyboard.canEnterPlace = false;
+                        Sounds.play('moved_selection')
+                            .then(() => {
+                            return Sounds.play(currentLocation[main_4.Game.state.selectedPlace].menuVoiceName, 1, 0, 'menuVoiceName');
+                        })
+                            .then(() => Keyboard.canEnterPlace = true);
                     }
                     break;
                 case 's':
@@ -460,37 +511,38 @@ define("interaction/keyboard/keyboard", ["require", "exports", "main/main", "pla
                             main_4.Game.state.selectedPlace--;
                     }
                     else {
-                        canEnterPlace = false;
-                        Sounds.play('moved_selection', 1, 0, undefined, undefined, () => {
-                            Sounds.play(currentLocation[main_4.Game.state.selectedPlace].menuVoiceName, 1, 0, 'menuVoiceName', undefined, () => {
-                                canEnterPlace = true;
-                            });
-                        });
+                        Keyboard.canEnterPlace = false;
+                        Sounds.play('moved_selection')
+                            .then(() => {
+                            return Sounds.play(currentLocation[main_4.Game.state.selectedPlace].menuVoiceName, 1, 0, 'menuVoiceName');
+                        })
+                            .then(() => Keyboard.canEnterPlace = true);
                     }
                     break;
                 case ' ':
-                    if (canEnterPlace) {
-                        Sounds.play('selection_confirmed', 1, 0, undefined, () => {
+                    if (Keyboard.canEnterPlace) {
+                        Sounds.play('selection_confirmed')
+                            .then(() => {
                             let currentPlace = main_4.Game.getPlaces()[main_4.Game.state.location][main_4.Game.state.selectedPlace];
-                            if (currentPlace instanceof dialogue_1.Dialogue) {
+                            if (currentPlace instanceof dialogue_2.Dialogue) {
                                 traveling_1.Traveling.openDialogue(main_4.Game.state.selectedPlace);
                             }
                             else
                                 console.log("let's fight, I guess");
                             visual_2.drawTable();
                         });
-                        main_4.Game.state.status = state_2.Status.NONE;
+                        main_4.Game.state.status = state_3.Status.NONE;
                     }
                     break;
             }
             /* #endregion */
         }
-        else if (main_4.Game.state.status === state_2.Status.DIALOGUE) {
+        else if (main_4.Game.state.status === state_3.Status.DIALOGUE) {
             /* region While being in a DIALOGUE */
             switch (e.key) {
                 case 'b':
                     let currentPlaceB = main_4.Game.getPlaces()[main_4.Game.state.location][main_4.Game.state.selectedPlace];
-                    if (currentPlaceB instanceof dialogue_1.Dialogue) {
+                    if (currentPlaceB instanceof dialogue_2.Dialogue) {
                         let currentDialogue = currentPlaceB;
                         clearTimeout(main_4.Game.state.timeOutID);
                         currentDialogue.exit(false);
@@ -498,7 +550,7 @@ define("interaction/keyboard/keyboard", ["require", "exports", "main/main", "pla
                     break;
                 case ' ':
                     let currentPlaceSpace = main_4.Game.getPlaces()[main_4.Game.state.location][main_4.Game.state.selectedPlace];
-                    if (currentPlaceSpace instanceof dialogue_1.Dialogue) {
+                    if (currentPlaceSpace instanceof dialogue_2.Dialogue) {
                         let currentDialogue = currentPlaceSpace;
                         clearTimeout(main_4.Game.state.timeOutID);
                         currentDialogue.exit(true);
@@ -510,7 +562,7 @@ define("interaction/keyboard/keyboard", ["require", "exports", "main/main", "pla
         visual_2.drawTable();
     }
 });
-define("main/main", ["require", "exports", "main/state", "place/dialogue", "interaction/visual", "interaction/keyboard/keyboard", "util/saveHandler", "util/traveling", "interaction/sounds"], function (require, exports, state_3, dialogue_2, visual_3, keyboard_1, saveHandler_2, traveling_2, Sounds) {
+define("main/main", ["require", "exports", "main/state", "place/dialogue", "interaction/visual", "interaction/keyboard/keyboard", "util/saveHandler", "util/traveling", "interaction/sounds"], function (require, exports, state_4, dialogue_3, visual_3, keyboard_2, saveHandler_2, traveling_2, Sounds) {
     "use strict";
     Object.defineProperty(exports, "__esModule", { value: true });
     Sounds = __importStar(Sounds);
@@ -521,22 +573,22 @@ define("main/main", ["require", "exports", "main/state", "place/dialogue", "inte
         static registerPlaces() {
             this.places = {
                 Kottlington: [
-                    new dialogue_2.Dialogue('tts_placeholder', "kottlington.Grandma", ["Hey! I don't want you, go to Battlington."], undefined, undefined, () => saveHandler_2.SaveHandler.setBoolean('story progression', 'talkedToGrandma', true)),
-                    new dialogue_2.Dialogue('tts_placeholder', "kottlington.weakRat$1", ["Hey. I'm nice to you. Please go away."]),
-                    new dialogue_2.Dialogue('tts_placeholder', "kottlington.Battlington", ["You go to Battlington"], () => saveHandler_2.SaveHandler.getBoolean('story progression', 'talkedToGrandma'), undefined, () => traveling_2.Traveling.changeLocation('Battlington'))
+                    new dialogue_3.Dialogue('tts_placeholder', "kottlington.Grandma", ['tts_placeholder'], undefined, undefined, () => saveHandler_2.SaveHandler.setBoolean('story progression', 'talkedToGrandma', true)),
+                    new dialogue_3.Dialogue('enemy_weak_rat_fight', "kottlington.weakRat$1", ['tts_placeholder']),
+                    new dialogue_3.Dialogue('tts_placeholder', "kottlington.Battlington", ['tts_placeholder'], () => saveHandler_2.SaveHandler.getBoolean('story progression', 'talkedToGrandma'), undefined, () => traveling_2.Traveling.changeLocation('Battlington'))
                 ],
                 Battlington: [
-                    new dialogue_2.Dialogue('tts_placeholder', "battlington.Pub", ["Hey!"]),
-                    new dialogue_2.Dialogue('tts_placeholder', "battlington.slime$1", ["Hey. I'm nice to you. Please go away."]),
-                    new dialogue_2.Dialogue('tts_placeholder', "battlington.Kate", ["Hey! I'm Kate."]),
-                    new dialogue_2.Dialogue('tts_placeholder', "battlington.egg$1", ["Hey. I'm nice to you. Please go away."], undefined, undefined, () => { console.log('thanks'); }),
-                    new dialogue_2.Dialogue('tts_placeholder', "battlington.Justus", ["Hey! I'm Justus."]),
+                    new dialogue_3.Dialogue('tts_placeholder', "battlington.Pub", ['tts_placeholder']),
+                    new dialogue_3.Dialogue('tts_placeholder', "battlington.slime$1", ['tts_placeholder']),
+                    new dialogue_3.Dialogue('tts_joins_fight', "battlington.Kate", ['tts_placeholder']),
+                    new dialogue_3.Dialogue('tts_placeholder', "battlington.egg$1", ['tts_placeholder'], undefined, undefined, () => { console.log('thanks'); }),
+                    new dialogue_3.Dialogue('tts_placeholder', "battlington.Justus", ['tts_placeholder']),
                 ]
             };
         }
         static getPlaces() { return this.places; }
     }
-    Game.state = new state_3.State('Kottlington', 6, 0);
+    Game.state = new state_4.State('Kottlington', 6, 0);
     exports.Game = Game;
     function start() {
         // show UI
@@ -549,10 +601,10 @@ define("main/main", ["require", "exports", "main/state", "place/dialogue", "inte
         saveHandler_2.SaveHandler.initDatabase();
         // add the keyboard event listener
         document.addEventListener('keydown', (e) => {
-            keyboard_1.Keyboard.keyDown(e);
+            keyboard_2.Keyboard.keyDown(e);
         });
         document.addEventListener('keyup', (e) => {
-            keyboard_1.Keyboard.keyUp(e);
+            keyboard_2.Keyboard.keyUp(e);
         });
         // add sounds
         function addSound(name) {
@@ -564,23 +616,9 @@ define("main/main", ["require", "exports", "main/state", "place/dialogue", "inte
         addSound('tts_placeholder');
         addSound('tts_joins_fight');
         addSound('enemy_rat_fight');
+        addSound('blankspace');
+        addSound('enemy_weak_rat_fights');
         Sounds.loadAllSounds();
-        // do the visuals
-        let table = document.getElementById('location');
-        if (table instanceof HTMLElement)
-            visual_3.Visual.table = table;
-        else
-            throw new Error("Can't find html table '#location'!");
-        let textBox = document.getElementById('textbox_frame');
-        if (textBox instanceof HTMLElement)
-            visual_3.Visual.textBox = textBox;
-        else
-            throw new Error("Can't find the textbox!");
-        let textBoxText = document.getElementById('textbox');
-        if (textBoxText instanceof HTMLElement)
-            visual_3.Visual.textBoxText = textBoxText;
-        else
-            throw new Error("Can't find the textbox's contents!");
         slot = prompt("Which slot") || 'Unnamed';
         if (localStorage.getItem(`slot:${slot}`))
             saveHandler_2.SaveHandler.loadFromBrowserData(slot);
@@ -589,31 +627,19 @@ define("main/main", ["require", "exports", "main/state", "place/dialogue", "inte
     }
     exports.start = start;
 });
-define("interaction/visual", ["require", "exports", "main/main", "main/state"], function (require, exports, main_5, state_4) {
+define("interaction/visual", ["require", "exports", "main/main"], function (require, exports, main_5) {
     "use strict";
     Object.defineProperty(exports, "__esModule", { value: true });
-    var Visual;
-    (function (Visual) {
-    })(Visual = exports.Visual || (exports.Visual = {}));
+    exports.table = document.getElementById('location');
     function drawTable() {
-        // check whether to show the dialogue box or menu table
-        if (main_5.Game.state.status === state_4.Status.DIALOGUE) {
-            Visual.textBox.style.display = null;
-            Visual.table.style.display = 'none';
-        }
-        else {
-            Visual.textBox.style.display = 'none';
-            Visual.table.style.display = null;
-        }
-        let table = Visual.table;
         let currentPlace = main_5.Game.getPlaces()[main_5.Game.state.location];
-        for (let i = table.children.length - 1; i > 0; i--) {
-            const element = table.children[i];
-            table.removeChild(element);
+        for (let i = exports.table.children.length - 1; i > 0; i--) {
+            const element = exports.table.children[i];
+            exports.table.removeChild(element);
         }
         for (let i = 0; i < currentPlace.length; i++) {
             const element = currentPlace[i];
-            addRow(main_5.Game.state.selectedPlace === i, element.menuVoiceName, element.id, table, element.isShown());
+            addRow(main_5.Game.state.selectedPlace === i, element.menuVoiceName, element.id, exports.table, element.isShown());
         }
     }
     exports.drawTable = drawTable;

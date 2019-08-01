@@ -13,7 +13,7 @@ declare module "interaction/sounds" {
     export function loadAndPlaySound(): void;
     export function addSound(name: string, path: string): void;
     export function loadAllSounds(): void;
-    export function play(sound: Sound | Sound[], gain?: number, pan?: number, id?: string, behavior?: () => void, onEnd?: () => void): void;
+    export function play(sound: Sound | Sound[], gain?: number, pan?: number, id?: string, behavior?: () => void, onEnd?: () => void): Promise<void>;
     export function stop(id: string): void;
 }
 declare module "main/state" {
@@ -110,22 +110,23 @@ declare module "util/traveling" {
          */
         static changeLocation(location: string, selectedPlace?: number): void;
         /**
-         * Opens up a dialogue.
-         * @param index Which dialogue index to go
-         * @param location In which location (leave black for loaded location)
-         * @param initialText In which text index to go (optional)
-         * @param runOnEnter (Depends)
+         * Opens a dialogue
+         * @param index The index in the location that gets opened
+         * @param location The location to open the dialogue in, defaults to the current location
+         * @param initialText The text to jump to
+         * @param runOnEnter Whether it should run onEnter, if initialText isn't specified, it will default to true
          */
         static openDialogue(index: number, location?: string, initialText?: number, runOnEnter?: boolean): void;
     }
 }
 declare module "interaction/keyboard/keyboard" {
-    export class Keyboard {
-        static keys: {
+    export namespace Keyboard {
+        const keys: {
             [val: string]: boolean;
         };
-        static keyDown(e: KeyboardEvent): void;
-        static keyUp(e: KeyboardEvent): void;
+        let canEnterPlace: boolean;
+        function keyDown(e: KeyboardEvent): void;
+        function keyUp(e: KeyboardEvent): void;
     }
 }
 declare module "main/main" {
@@ -145,11 +146,7 @@ declare module "main/main" {
     export function start(): void;
 }
 declare module "interaction/visual" {
-    export namespace Visual {
-        let table: HTMLElement;
-        let textBox: HTMLElement;
-        let textBoxText: HTMLElement;
-    }
+    export const table: HTMLTableElement;
     export function drawTable(): void;
     export let ph: string;
 }
