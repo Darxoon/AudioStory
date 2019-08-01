@@ -1,6 +1,6 @@
 import {State} from "./state";
 import {Dialogue} from "../place/dialogue";
-import {drawTable, Visual} from "../interaction/visual";
+import {drawTable} from "../interaction/visual";
 import {Keyboard} from "../interaction/keyboard/keyboard";
 import {Place} from "../place/place";
 import {SaveHandler} from "../util/saveHandler";
@@ -21,25 +21,25 @@ export class Game {
 
 
 			Kottlington: [
-				new Dialogue('tts_placeholder',     "kottlington.Grandma",      ["Hey! I don't want you, go to Battlington."],
+				new Dialogue('tts_placeholder',     "kottlington.Grandma",      ['tts_placeholder'],
 					undefined,
 					undefined,
 					() => SaveHandler.setBoolean('story progression', 'talkedToGrandma', true)),
-				new Dialogue( 'tts_placeholder',    "kottlington.weakRat$1",    ["Hey. I'm nice to you. Please go away."]),
-				new Dialogue('tts_placeholder',     "kottlington.Battlington",  ["You go to Battlington"],
+				new Dialogue( 'enemy_weak_rat_fight',    "kottlington.weakRat$1",    ['tts_placeholder']),
+				new Dialogue('tts_placeholder',     "kottlington.Battlington",  ['tts_placeholder'],
 					() => SaveHandler.getBoolean('story progression', 'talkedToGrandma'),
 					undefined,
 					() => Traveling.changeLocation('Battlington'))
 			],
 			Battlington: [
-				new Dialogue('tts_placeholder',	"battlington.Pub",      ["Hey!"]),
-				new Dialogue('tts_placeholder',	"battlington.slime$1",  ["Hey. I'm nice to you. Please go away."]),
-				new Dialogue('tts_placeholder',	"battlington.Kate",     ["Hey! I'm Kate."]),
-				new Dialogue('tts_placeholder',	"battlington.egg$1",    ["Hey. I'm nice to you. Please go away."],
+				new Dialogue('tts_placeholder',	"battlington.Pub",      ['tts_placeholder']),
+				new Dialogue('tts_placeholder',	"battlington.slime$1",  ['tts_placeholder']),
+				new Dialogue('tts_joins_fight',	"battlington.Kate",     ['tts_placeholder']),
+				new Dialogue('tts_placeholder',	"battlington.egg$1",    ['tts_placeholder'],
 					undefined,
 					undefined,
 					() => {console.log('thanks')}),
-				new Dialogue('tts_placeholder',	"battlington.Justus",   ["Hey! I'm Justus."]),
+				new Dialogue('tts_placeholder',	"battlington.Justus",   ['tts_placeholder']),
 			]
 
 
@@ -77,25 +77,10 @@ export function start() {
 	addSound('tts_placeholder')
 	addSound('tts_joins_fight')
 	addSound('enemy_rat_fight')
+	addSound('blankspace')
+	addSound('enemy_weak_rat_fights')
 
 	Sounds.loadAllSounds()
-
-	// do the visuals
-	let table = document.getElementById('location')
-	if (table instanceof HTMLElement)
-		Visual.table = table;
-	else
-		throw new Error("Can't find html table '#location'!")
-	let textBox = document.getElementById('textbox_frame')
-	if (textBox instanceof HTMLElement)
-		Visual.textBox = textBox;
-	else
-		throw new Error("Can't find the textbox!")
-	let textBoxText = document.getElementById('textbox')
-	if (textBoxText instanceof HTMLElement)
-		Visual.textBoxText = textBoxText;
-	else
-		throw new Error("Can't find the textbox's contents!")
 
 	slot = prompt("Which slot") || 'Unnamed'
 	if(localStorage.getItem(`slot:${slot}`))

@@ -8,9 +8,9 @@ import {drawTable} from "../visual";
 import {Traveling} from "../../util/traveling";
 import * as Sounds from "interaction/sounds"
 
-export class Keyboard {
+export namespace Keyboard {
 
-	static keys: { [val: string]: boolean } = {
+	export const keys: { [val: string]: boolean } = {
 		'w': false,
 		'a': false,
 		's': false,
@@ -20,13 +20,13 @@ export class Keyboard {
 		'e': false,
 	}
 
+	export let canEnterPlace: boolean = true
 
 	// public static keyDown   (e: KeyboardEvent) { console.log(this.keys[e.key]) }
-	public static keyDown(e: KeyboardEvent) { if (this.keys[e.key] !== undefined) this.keys[e.key] = true; /*console.log(e)*/ keyPressed(e) }
-	public static keyUp(e: KeyboardEvent) { if (this.keys[e.key] !== undefined) this.keys[e.key] = false }
+	export function keyDown(e: KeyboardEvent) { if (keys[e.key] !== undefined) keys[e.key] = true; /*console.log(e)*/ keyPressed(e) }
+	export function keyUp(e: KeyboardEvent) { if (keys[e.key] !== undefined) keys[e.key] = false }
 }
 
-let canEnterPlace: boolean = true
 
 function keyPressed(e: KeyboardEvent) {
 	if (Game.state.status === Status.MENU) {
@@ -43,12 +43,12 @@ function keyPressed(e: KeyboardEvent) {
 					if(!currentLocation[Game.state.selectedPlace].isShown())
 						Game.state.selectedPlace++
 				} else {
-					canEnterPlace = false
+					Keyboard.canEnterPlace = false
 					Sounds.play('moved_selection')
 						.then(() => {
 							return Sounds.play(currentLocation[Game.state.selectedPlace].menuVoiceName, 1, 0, 'menuVoiceName')
 						})
-						.then(() => canEnterPlace = true)
+						.then(() => Keyboard.canEnterPlace = true)
 				}
 				break
 
@@ -62,18 +62,18 @@ function keyPressed(e: KeyboardEvent) {
 					if(!currentLocation[Game.state.selectedPlace].isShown())
 						Game.state.selectedPlace--
 				} else {
-					canEnterPlace = false
+					Keyboard.canEnterPlace = false
 					Sounds.play('moved_selection')
 						.then(() => {
 							return Sounds.play(currentLocation[Game.state.selectedPlace].menuVoiceName, 1, 0, 'menuVoiceName')
 						})
-						.then(() => canEnterPlace = true)
+						.then(() => Keyboard.canEnterPlace = true)
 				}
 				break
 
 			case ' ':
 
-				if(canEnterPlace) {
+				if(Keyboard.canEnterPlace) {
 					Sounds.play('selection_confirmed')
 						.then(() => {
 							let currentPlace = Game.getPlaces()[Game.state.location][Game.state.selectedPlace]

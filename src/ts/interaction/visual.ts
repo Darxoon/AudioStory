@@ -1,26 +1,11 @@
 import {Game} from "../main/main";
-import {Status} from "../main/state";
 import {Place} from "../place/place";
 import {Sound} from "./sound";
 
-export namespace Visual {
-	export let table: HTMLElement;
-	export let textBox: HTMLElement;
-	export let textBoxText: HTMLElement;
-}
+export const table: HTMLTableElement = document.getElementById('location') as HTMLTableElement
+
 export function drawTable () {
 
-	// check whether to show the dialogue box or menu table
-	if(Game.state.status === Status.DIALOGUE) {
-		Visual.textBox.style.display = null
-		Visual.table.style.display = 'none'
-	} else {
-		Visual.textBox.style.display = 'none'
-		Visual.table.style.display = null
-	}
-
-
-	let table: HTMLTableElement = Visual.table as HTMLTableElement;
 	let currentPlace: Place[] = Game.getPlaces()[Game.state.location];
 
 	for (let i = table.children.length - 1; i > 0; i--) {
