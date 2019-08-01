@@ -25,6 +25,7 @@ export function loadAndPlaySound() {
 const context = new AudioContext()
 const soundLoadQueue: {name: string, path: string}[] = []
 const soundLib: {[name: string]: AudioBuffer} = {}
+const soundsPlayingWithID: Map<string, AudioBufferSourceNode > = new Map<string, AudioBufferSourceNode>()
 
 export function addSound(name: string, path: string) {
 	soundLoadQueue.push({name, path: path})
@@ -74,7 +75,7 @@ function textToSpeech(sound: {type: 'tts', voice: string, text: string}): AudioB
 	return soundLib.tts_placeholder
 }
 
-function playBuffer(audioBuffer: AudioBuffer, gain = 1, pan = 0, behavior?: () => void, onEnd?: () => void) {
+function playBuffer(audioBuffer: AudioBuffer, gain = 1, pan = 0, id?: string, behavior?: () => void, onEnd?: () => void) {
 
 	const source = context.createBufferSource()
 	source.buffer = audioBuffer
@@ -89,6 +90,12 @@ function playBuffer(audioBuffer: AudioBuffer, gain = 1, pan = 0, behavior?: () =
 
 	pannerNode.connect(context.destination)
 	source.start()
+
+	if(id) {
+		if(soundsPlayingWithID.has(id))
+			soundsPlayingWithID.get(id).stop()
+		soundsPlayingWithID.set(id, source)
+	}
 
 
 	if (behavior) {
@@ -107,7 +114,7 @@ function playBuffer(audioBuffer: AudioBuffer, gain = 1, pan = 0, behavior?: () =
 
 }
 
-export function play(sound: Sound | Sound[], gain = 1, pan = 0, behavior?: () => void, onEnd?: () => void) {
+export function play(sound: Sound | Sound[], gain = 1, pan = 0, id?: string, behavior?: () => void, onEnd?: () => void) {
 
 	// if it's an array, combine it and play it
 	if(sound instanceof Array) {
@@ -119,7 +126,7 @@ export function play(sound: Sound | Sound[], gain = 1, pan = 0, behavior?: () =>
 				return textToSpeech(value)
 			else
 				return soundLib[value.name]
-		})), gain, pan, behavior, onEnd)
+		})), gain, pan, id, behavior, onEnd)
 	}
 
 	// if it's a string, convert it to an object
@@ -129,11 +136,12 @@ export function play(sound: Sound | Sound[], gain = 1, pan = 0, behavior?: () =>
 	// if it's a file, play item from soundLib
 	if(sound.type === 'file') {
 		if(soundLib[sound.name]) {
-			playBuffer(soundLib[sound.name], gain, pan, behavior, onEnd)
+			playBuffer(soundLib[sound.name], gain, pan, id, behavior, onEnd)
 		} else
 			console.error(`Sound called '${sound.name} doesn't exist`)
 
-	} else
+	} else {
 		// play text-to-speech
-		playBuffer(textToSpeech(sound), gain, pan, behavior, onEnd)
+		playBuffer(textToSpeech(sound), gain, pan, id, behavior, onEnd)
+	}
 }
