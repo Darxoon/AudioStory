@@ -75,6 +75,8 @@ function keyPressed(e: KeyboardEvent) {
 						console.log("let's fight, I guess")
 					drawTable()
 				})
+				Game.state.status = Status.NONE
+
 				break
 		}
 

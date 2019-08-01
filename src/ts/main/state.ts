@@ -24,6 +24,7 @@ export class State {
 }
 
 export enum Status {
+	NONE,
 	MENU,
 	DIALOGUE,
 	FIGHT
