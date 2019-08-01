@@ -96,14 +96,12 @@ export namespace SaveHandler {
 	export function saveToBrowserData(slot: string = "Unnamed"): void {
 		const encryptedSave = getEncryptedSave()
 		localStorage.setItem(`slot:${slot}`, encryptedSave)
-		alert('Saved!')
 	}
 	export function loadFromBrowserData(slot: string = "Unnamed") {
 		const text = localStorage.getItem(`slot:${slot}`)
 		if(!text)
 			throw "That slot doesn't exist!"
 		loadEncryptedSave(text)
-		alert('Loaded!')
 	}
 	//endregion
 
