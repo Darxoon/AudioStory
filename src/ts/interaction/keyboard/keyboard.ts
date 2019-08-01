@@ -26,6 +26,8 @@ export class Keyboard {
 	public static keyUp(e: KeyboardEvent) { if (this.keys[e.key] !== undefined) this.keys[e.key] = false }
 }
 
+let canEnterPlace: boolean = true
+
 function keyPressed(e: KeyboardEvent) {
 	if (Game.state.status === Status.MENU) {
 		/* region While being in the MENU */
@@ -41,8 +43,11 @@ function keyPressed(e: KeyboardEvent) {
 					if(!currentLocation[Game.state.selectedPlace].isShown())
 						Game.state.selectedPlace++
 				} else {
+					canEnterPlace = false
 					Sounds.play('moved_selection', 1, 0, undefined, undefined, () => {
-						Sounds.play(currentLocation[Game.state.selectedPlace].menuVoiceName, 1, 0, 'menuVoiceName')
+						Sounds.play(currentLocation[Game.state.selectedPlace].menuVoiceName, 1, 0, 'menuVoiceName', undefined, () => {
+							canEnterPlace = true
+						})
 					})
 				}
 				break
@@ -57,25 +62,30 @@ function keyPressed(e: KeyboardEvent) {
 					if(!currentLocation[Game.state.selectedPlace].isShown())
 						Game.state.selectedPlace--
 				} else {
+					canEnterPlace = false
 					Sounds.play('moved_selection', 1, 0, undefined, undefined, () => {
-						Sounds.play(currentLocation[Game.state.selectedPlace].menuVoiceName, 1, 0, 'menuVoiceName')
+						Sounds.play(currentLocation[Game.state.selectedPlace].menuVoiceName, 1, 0, 'menuVoiceName', undefined, () => {
+							canEnterPlace = true
+						})
 					})
 				}
 				break
 
 			case ' ':
 
-				Sounds.play('selection_confirmed', 1, 0, undefined, () => {
-					let currentPlace = Game.getPlaces()[Game.state.location][Game.state.selectedPlace]
-					if (currentPlace instanceof Dialogue) {
+				if(canEnterPlace) {
+					Sounds.play('selection_confirmed', 1, 0, undefined, () => {
+						let currentPlace = Game.getPlaces()[Game.state.location][Game.state.selectedPlace]
+						if (currentPlace instanceof Dialogue) {
 
-						Traveling.openDialogue(Game.state.selectedPlace)
+							Traveling.openDialogue(Game.state.selectedPlace)
 
-					} else
-						console.log("let's fight, I guess")
-					drawTable()
-				})
-				Game.state.status = Status.NONE
+						} else
+							console.log("let's fight, I guess")
+						drawTable()
+					})
+					Game.state.status = Status.NONE
+				}
 
 				break
 		}
