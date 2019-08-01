@@ -41,7 +41,9 @@ function keyPressed(e: KeyboardEvent) {
 					if(!currentLocation[Game.state.selectedPlace].isShown())
 						Game.state.selectedPlace++
 				} else {
-					Sounds.play('moved_selection')
+					Sounds.play('moved_selection', 1, 0, undefined, undefined, () => {
+						Sounds.play(currentLocation[Game.state.selectedPlace].menuVoiceName, 1, 0, 'menuVoiceName')
+					})
 				}
 				break
 
@@ -55,7 +57,9 @@ function keyPressed(e: KeyboardEvent) {
 					if(!currentLocation[Game.state.selectedPlace].isShown())
 						Game.state.selectedPlace--
 				} else {
-					Sounds.play('moved_selection')
+					Sounds.play('moved_selection', 1, 0, undefined, undefined, () => {
+						Sounds.play(currentLocation[Game.state.selectedPlace].menuVoiceName, 1, 0, 'menuVoiceName')
+					})
 				}
 				break
 

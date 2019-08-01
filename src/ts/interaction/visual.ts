@@ -1,6 +1,7 @@
 import {Game} from "../main/main";
 import {Status} from "../main/state";
 import {Place} from "../place/place";
+import {Sound} from "./sound";
 
 export namespace Visual {
 	export let table: HTMLElement;
@@ -9,7 +10,7 @@ export namespace Visual {
 }
 export function drawTable () {
 
-
+	// check whether to show the dialogue box or menu table
 	if(Game.state.status === Status.DIALOGUE) {
 		Visual.textBox.style.display = null
 		Visual.table.style.display = 'none'
@@ -19,7 +20,7 @@ export function drawTable () {
 	}
 
 
-	let table: Element = Visual.table;
+	let table: HTMLTableElement = Visual.table as HTMLTableElement;
 	let currentPlace: Place[] = Game.getPlaces()[Game.state.location];
 
 	for (let i = table.children.length - 1; i > 0; i--) {
@@ -29,25 +30,33 @@ export function drawTable () {
 
 	for (let i = 0; i < currentPlace.length; i++) {
 		const element = currentPlace[i];
-		addRow(Game.state.selectedPlace === i, element.isShown() ? element.displayName : `(${element.displayName})...`, element.id, table, element.isShown())
+		addRow(Game.state.selectedPlace === i, element.menuVoiceName, element.id, table, element.isShown())
 	}
 
 }
 export let ph = 'My secret Passphrase'
-function addRow(isSelected: boolean, displayName: string, id: string, table: Element, isShown: boolean) {
-	let row = table.appendChild(document.createElement('tr'))
+function addRow(isSelected: boolean, sound: Sound, id: string, table: HTMLTableElement, isShown: boolean) {
+	if(typeof sound === 'string')
+		sound = { type: 'file', name: sound }
+	const row = table.appendChild(document.createElement('tr'))
 	row.className = 'locationRow'
 
-	let selected = document.createElement('td')
+
+	const selected = document.createElement('td')
 	selected.appendChild(document.createTextNode(isSelected ? '>' : isShown ? ' ' : '❌'))
 	row.appendChild(selected)
 
-	let dname = document.createElement('td')
-	dname.appendChild(document.createTextNode(displayName))
-	row.appendChild(dname)
+	const dSoundName = document.createElement('td')
+	dSoundName.appendChild(document.createTextNode(sound.type === 'file' ? sound.name : sound.text))
+	row.appendChild(dSoundName)
 
-	let did = document.createElement('td')
-	did.appendChild(document.createTextNode(id))
-	row.appendChild(did)
+	const dSoundType = document.createElement('td')
+	dSoundType.appendChild(document.createTextNode(sound.type))
+	row.appendChild(dSoundType)
+
+
+	const dId = document.createElement('td')
+	dId.appendChild(document.createTextNode(id))
+	row.appendChild(dId)
 
 }
