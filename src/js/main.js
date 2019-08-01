@@ -135,6 +135,13 @@ define("interaction/sounds", ["require", "exports"], function (require, exports)
         }
     }
     exports.play = play;
+    function stop(id) {
+        if (soundsPlayingWithID.has(id))
+            soundsPlayingWithID.get(id).stop();
+        else
+            console.error("There's no sound playing with the given id", id);
+    }
+    exports.stop = stop;
 });
 define("main/state", ["require", "exports"], function (require, exports) {
     "use strict";
@@ -158,9 +165,10 @@ define("main/state", ["require", "exports"], function (require, exports) {
     exports.State = State;
     var Status;
     (function (Status) {
-        Status[Status["MENU"] = 0] = "MENU";
-        Status[Status["DIALOGUE"] = 1] = "DIALOGUE";
-        Status[Status["FIGHT"] = 2] = "FIGHT";
+        Status[Status["NONE"] = 0] = "NONE";
+        Status[Status["MENU"] = 1] = "MENU";
+        Status[Status["DIALOGUE"] = 2] = "DIALOGUE";
+        Status[Status["FIGHT"] = 3] = "FIGHT";
     })(Status = exports.Status || (exports.Status = {}));
 });
 define("place/place", ["require", "exports"], function (require, exports) {
@@ -457,6 +465,7 @@ define("interaction/keyboard/keyboard", ["require", "exports", "main/main", "pla
         'e': false,
     };
     exports.Keyboard = Keyboard;
+    let canEnterPlace = true;
     function keyPressed(e) {
         if (main_4.Game.state.status === state_3.Status.MENU) {
             /* region While being in the MENU */
@@ -472,8 +481,11 @@ define("interaction/keyboard/keyboard", ["require", "exports", "main/main", "pla
                             main_4.Game.state.selectedPlace++;
                     }
                     else {
+                        canEnterPlace = false;
                         Sounds.play('moved_selection', 1, 0, undefined, undefined, () => {
-                            Sounds.play(currentLocation[main_4.Game.state.selectedPlace].menuVoiceName, 1, 0, 'menuVoiceName');
+                            Sounds.play(currentLocation[main_4.Game.state.selectedPlace].menuVoiceName, 1, 0, 'menuVoiceName', undefined, () => {
+                                canEnterPlace = true;
+                            });
                         });
                     }
                     break;
@@ -487,21 +499,27 @@ define("interaction/keyboard/keyboard", ["require", "exports", "main/main", "pla
                             main_4.Game.state.selectedPlace--;
                     }
                     else {
+                        canEnterPlace = false;
                         Sounds.play('moved_selection', 1, 0, undefined, undefined, () => {
-                            Sounds.play(currentLocation[main_4.Game.state.selectedPlace].menuVoiceName, 1, 0, 'menuVoiceName');
+                            Sounds.play(currentLocation[main_4.Game.state.selectedPlace].menuVoiceName, 1, 0, 'menuVoiceName', undefined, () => {
+                                canEnterPlace = true;
+                            });
                         });
                     }
                     break;
                 case ' ':
-                    Sounds.play('selection_confirmed', 1, 0, undefined, () => {
-                        let currentPlace = main_4.Game.getPlaces()[main_4.Game.state.location][main_4.Game.state.selectedPlace];
-                        if (currentPlace instanceof dialogue_2.Dialogue) {
-                            traveling_1.Traveling.openDialogue(main_4.Game.state.selectedPlace);
-                        }
-                        else
-                            console.log("let's fight, I guess");
-                        visual_3.drawTable();
-                    });
+                    if (canEnterPlace) {
+                        Sounds.play('selection_confirmed', 1, 0, undefined, () => {
+                            let currentPlace = main_4.Game.getPlaces()[main_4.Game.state.location][main_4.Game.state.selectedPlace];
+                            if (currentPlace instanceof dialogue_2.Dialogue) {
+                                traveling_1.Traveling.openDialogue(main_4.Game.state.selectedPlace);
+                            }
+                            else
+                                console.log("let's fight, I guess");
+                            visual_3.drawTable();
+                        });
+                        main_4.Game.state.status = state_3.Status.NONE;
+                    }
                     break;
             }
             /* #endregion */

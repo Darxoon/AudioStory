@@ -14,6 +14,7 @@ declare module "interaction/sounds" {
     export function addSound(name: string, path: string): void;
     export function loadAllSounds(): void;
     export function play(sound: Sound | Sound[], gain?: number, pan?: number, id?: string, behavior?: () => void, onEnd?: () => void): void;
+    export function stop(id: string): void;
 }
 declare module "main/state" {
     /**
@@ -30,9 +31,10 @@ declare module "main/state" {
         constructor(location: string, maxHealth: number, selectedPlace?: number);
     }
     export enum Status {
-        MENU = 0,
-        DIALOGUE = 1,
-        FIGHT = 2
+        NONE = 0,
+        MENU = 1,
+        DIALOGUE = 2,
+        FIGHT = 3
     }
 }
 declare module "place/place" {
