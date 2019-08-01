@@ -145,3 +145,10 @@ export function play(sound: Sound | Sound[], gain = 1, pan = 0, id?: string, beh
 		playBuffer(textToSpeech(sound), gain, pan, id, behavior, onEnd)
 	}
 }
+
+export function stop(id: string) {
+	if(soundsPlayingWithID.has(id))
+		soundsPlayingWithID.get(id).stop()
+	else
+		console.error("There's no sound playing with the given id", id)
+}
