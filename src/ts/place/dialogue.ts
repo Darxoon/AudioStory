@@ -9,7 +9,7 @@ export class Dialogue implements Place {
 	menuVoiceName: Sound
 	id: string
 
-	text: string[]
+	text: Sound[]
 	isShown: () => boolean
 	onEnter: () => number
 	onFinish: () => void | undefined
@@ -23,7 +23,7 @@ export class Dialogue implements Place {
 	 * @param onEnter The function that gets run when you enter this place. Decides which text to read.
 	 * @param onFinish The function that gets run when you return to the menu.
 	 */
-	constructor (menuVoiceName: Sound, id: string, text: string[], isShown: () => boolean = () => true, onEnter: () => number = () => 0, onFinish?: () => void) {
+	constructor (menuVoiceName: Sound, id: string, text: Sound[], isShown: () => boolean = () => true, onEnter: () => number = () => 0, onFinish?: () => void) {
 		this.menuVoiceName = menuVoiceName
 		this.id = id
 		this.text = text
