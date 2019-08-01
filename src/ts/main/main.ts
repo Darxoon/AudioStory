@@ -73,6 +73,8 @@ export function start() {
 	addSound('selection_confirmed')
 	addSound('selection_not_possible')
 	addSound('tts_placeholder')
+	addSound('tts_joins_fight')
+	addSound('enemy_rat_fight')
 
 	Sounds.loadAllSounds()
 
