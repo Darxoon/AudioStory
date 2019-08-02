@@ -444,6 +444,8 @@ define("util/traveling", ["require", "exports", "main/main", "util/saveHandler",
                     .then(() => {
                     main_3.Game.state.status = state_2.Status.MENU;
                     keyboard_1.Keyboard.canEnterPlace = true;
+                    if (place.onFinish)
+                        place.onFinish();
                 });
             }
             else
@@ -544,6 +546,13 @@ define("interaction/keyboard/keyboard", ["require", "exports", "main/main", "pla
                         let currentDialogue = currentPlaceB;
                         clearTimeout(main_4.Game.state.timeOutID);
                         currentDialogue.exit(false);
+                        Sounds.stop('currentDialogue');
+                        main_4.Game.state.status = state_3.Status.NONE;
+                        Sounds.play('tts_shut_up')
+                            .then(() => {
+                            main_4.Game.state.status = state_3.Status.MENU;
+                            visual_2.drawTable();
+                        });
                     }
                     break;
                 case ' ':
@@ -552,6 +561,15 @@ define("interaction/keyboard/keyboard", ["require", "exports", "main/main", "pla
                         let currentDialogue = currentPlaceSpace;
                         clearTimeout(main_4.Game.state.timeOutID);
                         currentDialogue.exit(true);
+                        Sounds.stop('currentDialogue');
+                        main_4.Game.state.status = state_3.Status.NONE;
+                        Sounds.play('tts_okay')
+                            .then(() => {
+                            main_4.Game.state.status = state_3.Status.MENU;
+                            if (currentDialogue.onFinish)
+                                currentDialogue.onFinish();
+                            visual_2.drawTable();
+                        });
                     }
                     break;
             }
@@ -617,6 +635,8 @@ define("main/main", ["require", "exports", "main/state", "place/dialogue", "inte
         addSound('blankspace');
         addSound('enemy_weak_rat_fight');
         addSound('dialogue_talk_to_grandpa');
+        addSound('tts_shut_up');
+        addSound('tts_okay');
         Sounds.loadAllSounds();
         slot = prompt("Which slot") || 'Unnamed';
         if (localStorage.getItem(`slot:${slot}`))
