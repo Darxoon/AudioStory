@@ -4,6 +4,7 @@ import {Dialogue} from "../place/dialogue";
 import {Status} from "../main/state";
 import * as Sounds from "interaction/sounds";
 import {Keyboard} from "../interaction/keyboard/keyboard";
+import {drawTable} from "../interaction/visual";
 
 export class Traveling {
 
@@ -57,6 +58,7 @@ export class Traveling {
 					Keyboard.canEnterPlace = true
 					if(place.onFinish)
 						place.onFinish()
+					drawTable()
 				})
 
 		} else
