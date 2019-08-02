@@ -440,13 +440,11 @@ define("util/traveling", ["require", "exports", "main/main", "util/saveHandler",
                 }
                 // play sound
                 console.log(place.text, initialText);
-                Sounds.play([place.text[initialText], 'blankspace'], 1, 0, 'currentDialogue')
+                Sounds.play(place.text[initialText], 1, 0, 'currentDialogue')
                     .then(() => {
                     main_3.Game.state.status = state_2.Status.MENU;
-                    keyboard_1.Keyboard.canEnterPlace = false;
-                    return Sounds.play(main_3.Game.getPlaces()[main_3.Game.state.location][main_3.Game.state.selectedPlace].menuVoiceName, 1, 0, 'menuVoiceName');
-                })
-                    .then(() => keyboard_1.Keyboard.canEnterPlace = true);
+                    keyboard_1.Keyboard.canEnterPlace = true;
+                });
             }
             else
                 throw `The place ('${place.id}') is not a dialogue!`;
@@ -573,7 +571,7 @@ define("main/main", ["require", "exports", "main/state", "place/dialogue", "inte
         static registerPlaces() {
             this.places = {
                 Kottlington: [
-                    new dialogue_3.Dialogue('tts_placeholder', "kottlington.Grandma", ['tts_placeholder'], undefined, undefined, () => saveHandler_2.SaveHandler.setBoolean('story progression', 'talkedToGrandma', true)),
+                    new dialogue_3.Dialogue('dialogue_talk_to_grandpa', "kottlington.Grandpa", ['tts_placeholder'], undefined, undefined, () => saveHandler_2.SaveHandler.setBoolean('story progression', 'talkedToGrandma', true)),
                     new dialogue_3.Dialogue('enemy_weak_rat_fight', "kottlington.weakRat$1", ['tts_placeholder']),
                     new dialogue_3.Dialogue('tts_placeholder', "kottlington.Battlington", ['tts_placeholder'], () => saveHandler_2.SaveHandler.getBoolean('story progression', 'talkedToGrandma'), undefined, () => traveling_2.Traveling.changeLocation('Battlington'))
                 ],
@@ -617,7 +615,8 @@ define("main/main", ["require", "exports", "main/state", "place/dialogue", "inte
         addSound('tts_joins_fight');
         addSound('enemy_rat_fight');
         addSound('blankspace');
-        addSound('enemy_weak_rat_fights');
+        addSound('enemy_weak_rat_fight');
+        addSound('dialogue_talk_to_grandpa');
         Sounds.loadAllSounds();
         slot = prompt("Which slot") || 'Unnamed';
         if (localStorage.getItem(`slot:${slot}`))
