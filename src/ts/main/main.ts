@@ -21,7 +21,7 @@ export class Game {
 
 
 			Kottlington: [
-				new Dialogue('tts_placeholder',     "kottlington.Grandma",      ['tts_placeholder'],
+				new Dialogue('dialogue_talk_to_grandpa',     "kottlington.Grandpa",      ['tts_placeholder'],
 					undefined,
 					undefined,
 					() => SaveHandler.setBoolean('story progression', 'talkedToGrandma', true)),
@@ -78,7 +78,8 @@ export function start() {
 	addSound('tts_joins_fight')
 	addSound('enemy_rat_fight')
 	addSound('blankspace')
-	addSound('enemy_weak_rat_fights')
+	addSound('enemy_weak_rat_fight')
+	addSound('dialogue_talk_to_grandpa')
 
 	Sounds.loadAllSounds()
 
