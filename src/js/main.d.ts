@@ -103,6 +103,7 @@ declare module "util/saveHandler" {
 }
 declare module "util/traveling" {
     export class Traveling {
+        static endByDefault: boolean;
         /**
          * Switches to another location.
          * @param location Which location to go to

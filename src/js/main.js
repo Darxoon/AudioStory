@@ -222,6 +222,7 @@ define("place/dialogue", ["require", "exports", "main/main", "main/state"], func
          * @param finish Does onFinish?() get run?
          */
         exit(finish) {
+            console.log('exiting from', this.id, finish);
             main_1.Game.state.status = state_1.Status.MENU;
             if (finish && this.onFinish)
                 this.onFinish();
@@ -395,7 +396,7 @@ define("util/saveHandler", ["require", "exports", "main/main", "interaction/visu
         document.getElementById('load_from_browser_data').addEventListener('click', () => loadFromBrowserData(slot));
     })(SaveHandler = exports.SaveHandler || (exports.SaveHandler = {}));
 });
-define("util/traveling", ["require", "exports", "main/main", "util/saveHandler", "place/dialogue", "main/state", "interaction/sounds", "interaction/keyboard/keyboard"], function (require, exports, main_3, saveHandler_1, dialogue_1, state_2, Sounds, keyboard_1) {
+define("util/traveling", ["require", "exports", "main/main", "util/saveHandler", "place/dialogue", "main/state", "interaction/sounds", "interaction/keyboard/keyboard", "interaction/visual"], function (require, exports, main_3, saveHandler_1, dialogue_1, state_2, Sounds, keyboard_1, visual_2) {
     "use strict";
     Object.defineProperty(exports, "__esModule", { value: true });
     Sounds = __importStar(Sounds);
@@ -442,19 +443,23 @@ define("util/traveling", ["require", "exports", "main/main", "util/saveHandler",
                 console.log(place.text, initialText);
                 Sounds.play(place.text[initialText], 1, 0, 'currentDialogue')
                     .then(() => {
-                    main_3.Game.state.status = state_2.Status.MENU;
+                    console.log(this.endByDefault);
                     keyboard_1.Keyboard.canEnterPlace = true;
-                    if (place.onFinish)
-                        place.onFinish();
+                    if (this.endByDefault)
+                        place.exit(true);
+                    else
+                        this.endByDefault = true;
+                    visual_2.drawTable();
                 });
             }
             else
                 throw `The place ('${place.id}') is not a dialogue!`;
         }
     }
+    Traveling.endByDefault = true;
     exports.Traveling = Traveling;
 });
-define("interaction/keyboard/keyboard", ["require", "exports", "main/main", "place/dialogue", "main/state", "interaction/visual", "util/traveling", "interaction/sounds"], function (require, exports, main_4, dialogue_2, state_3, visual_2, traveling_1, Sounds) {
+define("interaction/keyboard/keyboard", ["require", "exports", "main/main", "place/dialogue", "main/state", "interaction/visual", "util/traveling", "interaction/sounds"], function (require, exports, main_4, dialogue_2, state_3, visual_3, traveling_1, Sounds) {
     "use strict";
     Object.defineProperty(exports, "__esModule", { value: true });
     Sounds = __importStar(Sounds);
@@ -529,7 +534,7 @@ define("interaction/keyboard/keyboard", ["require", "exports", "main/main", "pla
                             }
                             else
                                 console.log("let's fight, I guess");
-                            visual_2.drawTable();
+                            visual_3.drawTable();
                         });
                         main_4.Game.state.status = state_3.Status.NONE;
                     }
@@ -545,13 +550,14 @@ define("interaction/keyboard/keyboard", ["require", "exports", "main/main", "pla
                     if (currentPlaceB instanceof dialogue_2.Dialogue) {
                         let currentDialogue = currentPlaceB;
                         clearTimeout(main_4.Game.state.timeOutID);
-                        currentDialogue.exit(false);
+                        traveling_1.Traveling.endByDefault = false;
                         Sounds.stop('currentDialogue');
                         main_4.Game.state.status = state_3.Status.NONE;
                         Sounds.play('tts_shut_up')
                             .then(() => {
-                            main_4.Game.state.status = state_3.Status.MENU;
-                            visual_2.drawTable();
+                            console.log('b pressed');
+                            currentDialogue.exit(false);
+                            visual_3.drawTable();
                         });
                     }
                     break;
@@ -560,25 +566,24 @@ define("interaction/keyboard/keyboard", ["require", "exports", "main/main", "pla
                     if (currentPlaceSpace instanceof dialogue_2.Dialogue) {
                         let currentDialogue = currentPlaceSpace;
                         clearTimeout(main_4.Game.state.timeOutID);
-                        currentDialogue.exit(true);
                         Sounds.stop('currentDialogue');
+                        traveling_1.Traveling.endByDefault = false;
                         main_4.Game.state.status = state_3.Status.NONE;
                         Sounds.play('tts_okay')
                             .then(() => {
-                            main_4.Game.state.status = state_3.Status.MENU;
-                            if (currentDialogue.onFinish)
-                                currentDialogue.onFinish();
-                            visual_2.drawTable();
+                            console.log('space pressed');
+                            currentDialogue.exit(true);
+                            visual_3.drawTable();
                         });
                     }
                     break;
             }
             /* #endregion */
         }
-        visual_2.drawTable();
+        visual_3.drawTable();
     }
 });
-define("main/main", ["require", "exports", "main/state", "place/dialogue", "interaction/visual", "interaction/keyboard/keyboard", "util/saveHandler", "util/traveling", "interaction/sounds"], function (require, exports, state_4, dialogue_3, visual_3, keyboard_2, saveHandler_2, traveling_2, Sounds) {
+define("main/main", ["require", "exports", "main/state", "place/dialogue", "interaction/visual", "interaction/keyboard/keyboard", "util/saveHandler", "util/traveling", "interaction/sounds"], function (require, exports, state_4, dialogue_3, visual_4, keyboard_2, saveHandler_2, traveling_2, Sounds) {
     "use strict";
     Object.defineProperty(exports, "__esModule", { value: true });
     Sounds = __importStar(Sounds);
@@ -642,7 +647,7 @@ define("main/main", ["require", "exports", "main/state", "place/dialogue", "inte
         if (localStorage.getItem(`slot:${slot}`))
             saveHandler_2.SaveHandler.loadFromBrowserData(slot);
         else
-            visual_3.drawTable();
+            visual_4.drawTable();
     }
     exports.start = start;
 });
