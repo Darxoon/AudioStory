@@ -51,13 +51,11 @@ export class Traveling {
 
 			// play sound
 			console.log(place.text, initialText)
-			Sounds.play([place.text[initialText], 'blankspace'], 1, 0, 'currentDialogue')
+			Sounds.play(place.text[initialText], 1, 0, 'currentDialogue')
 				.then(() => {
 					Game.state.status = Status.MENU
-					Keyboard.canEnterPlace = false
-					return Sounds.play(Game.getPlaces()[Game.state.location][Game.state.selectedPlace].menuVoiceName, 1, 0, 'menuVoiceName')
+					Keyboard.canEnterPlace = true
 				})
-				.then(() => Keyboard.canEnterPlace = true)
 
 		} else
 			throw `The place ('${place.id}') is not a dialogue!`
