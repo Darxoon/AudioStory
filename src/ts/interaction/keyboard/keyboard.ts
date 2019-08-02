@@ -101,12 +101,13 @@ function keyPressed(e: KeyboardEvent) {
 				if (currentPlaceB instanceof Dialogue) {
 					let currentDialogue: Dialogue = currentPlaceB
 					clearTimeout(Game.state.timeOutID)
-					currentDialogue.exit(false)
+					Traveling.endByDefault = false
 					Sounds.stop('currentDialogue')
 					Game.state.status = Status.NONE
 					Sounds.play('tts_shut_up')
 						.then(() => {
-							Game.state.status = Status.MENU
+							console.log('b pressed')
+							currentDialogue.exit(false)
 							drawTable()
 						})
 				}
@@ -117,14 +118,13 @@ function keyPressed(e: KeyboardEvent) {
 				if (currentPlaceSpace instanceof Dialogue) {
 					let currentDialogue: Dialogue = currentPlaceSpace
 					clearTimeout(Game.state.timeOutID)
-					currentDialogue.exit(true)
 					Sounds.stop('currentDialogue')
+					Traveling.endByDefault = false
 					Game.state.status = Status.NONE
 					Sounds.play('tts_okay')
 						.then(() => {
-							Game.state.status = Status.MENU
-							if(currentDialogue.onFinish)
-								currentDialogue.onFinish()
+							console.log('space pressed')
+							currentDialogue.exit(true)
 							drawTable()
 						})
 				}

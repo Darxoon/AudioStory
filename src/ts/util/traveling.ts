@@ -8,6 +8,8 @@ import {drawTable} from "../interaction/visual";
 
 export class Traveling {
 
+	static endByDefault: boolean = true
+
 	/**
 	 * Switches to another location.
 	 * @param location Which location to go to
@@ -54,10 +56,12 @@ export class Traveling {
 			console.log(place.text, initialText)
 			Sounds.play(place.text[initialText], 1, 0, 'currentDialogue')
 				.then(() => {
-					Game.state.status = Status.MENU
+					console.log(this.endByDefault)
 					Keyboard.canEnterPlace = true
-					if(place.onFinish)
-						place.onFinish()
+					if(this.endByDefault)
+						place.exit(true)
+					else
+						this.endByDefault = true
 					drawTable()
 				})
 

@@ -37,6 +37,7 @@ export class Dialogue implements Place {
 	 * @param finish Does onFinish?() get run?
 	 */
 	public exit(finish: boolean): void {
+		console.log('exiting from', this.id, finish)
 		Game.state.status = Status.MENU
 		if(finish && this.onFinish)
 			this.onFinish()
