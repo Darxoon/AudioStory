@@ -55,6 +55,8 @@ export class Traveling {
 				.then(() => {
 					Game.state.status = Status.MENU
 					Keyboard.canEnterPlace = true
+					if(place.onFinish)
+						place.onFinish()
 				})
 
 		} else
