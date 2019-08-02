@@ -80,6 +80,8 @@ export function start() {
 	addSound('blankspace')
 	addSound('enemy_weak_rat_fight')
 	addSound('dialogue_talk_to_grandpa')
+	addSound('tts_shut_up')
+	addSound('tts_okay')
 
 	Sounds.loadAllSounds()
 

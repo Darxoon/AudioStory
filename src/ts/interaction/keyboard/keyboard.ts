@@ -102,6 +102,13 @@ function keyPressed(e: KeyboardEvent) {
 					let currentDialogue: Dialogue = currentPlaceB
 					clearTimeout(Game.state.timeOutID)
 					currentDialogue.exit(false)
+					Sounds.stop('currentDialogue')
+					Game.state.status = Status.NONE
+					Sounds.play('tts_shut_up')
+						.then(() => {
+							Game.state.status = Status.MENU
+							drawTable()
+						})
 				}
 				break
 
@@ -111,6 +118,15 @@ function keyPressed(e: KeyboardEvent) {
 					let currentDialogue: Dialogue = currentPlaceSpace
 					clearTimeout(Game.state.timeOutID)
 					currentDialogue.exit(true)
+					Sounds.stop('currentDialogue')
+					Game.state.status = Status.NONE
+					Sounds.play('tts_okay')
+						.then(() => {
+							Game.state.status = Status.MENU
+							if(currentDialogue.onFinish)
+								currentDialogue.onFinish()
+							drawTable()
+						})
 				}
 				break
 
