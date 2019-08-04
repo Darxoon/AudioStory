@@ -58,15 +58,37 @@
 
 			<div id="start_button_bar">
 				<button id="select_save_button">Select save</button>
-				<button id="start_button" onclick="require(['main/main'], main => { main.start() })">Start</button>
+				<button id="start_button" onclick="require(['main/main'], main => { main.start() })" disabled>Start</button>
 			</div>
 
-			<ul id="save_dropdown">
-				<li>New...</li>
-				<li>Test1</li>
-				<li>Test2</li>
-				<li>I am cool</li>
-			</ul>
+			<div id="overlay" style="display: none">
+
+				<div class="outer">
+					<div class="inner">
+						<div class="overlay_box">
+							<div class="title">
+								<span>Select profile</span>
+							</div>
+							<div class="body">
+								<div class="select">Select a profile:</div>
+								<div class="list">
+									<div>
+										<ul></ul>
+									</div>
+								</div>
+							</div>
+							<div class="footer" >
+								<button class="ok" id="ok">
+									OK
+								</button>
+								<button class="cancel" id="cancel">
+									Cancel
+								</button>
+							</div>
+						</div>
+					</div>
+				</div>
+			</div>
 		</div>
 
 		<div id="save" style="display: none">
