@@ -42,8 +42,11 @@ newButton.addEventListener('click', () => {
 	profileSelectorList.appendChild(entry)
 	entryInput.focus()
 	entryInput.addEventListener('blur', () => {
-		const name = entryInput.value
+		let name = entryInput.value
 		if(name) {
+			// if a save with this name exists already, append a _ to this name, and check again
+			while(Array.from(profileSelectorList.children).reduce((previousValue, currentValue) => currentValue.innerText === name || previousValue, false))
+				name += '_'
 			profileChanges.newSlots.push(name)
 			entry.removeChild(entryInput)
 			entry.innerText = name
@@ -97,4 +100,10 @@ document.getElementById('ok').addEventListener('click', () => {
 })
 document.getElementById('cancel').addEventListener('click', () => {
 	document.getElementById('overlay').style.display = 'none'
+	for(const child of profileSelectorList.children) {
+		if(child.innerText === slot)
+			child.click()
+		if(profileChanges.newSlots.includes(child.innerText))
+			profileSelectorList.removeChild(child)
+	}
 })
