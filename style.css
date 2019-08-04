@@ -42,6 +42,10 @@ p {
 	margin-left: 0.4rem;
 }
 
+/*#start_button:disabled {*/
+/*	background: #555555;*/
+/*}*/
+
 #save {
 	background: #7d7d7dcc;
 	margin-top: 1rem;
@@ -237,3 +241,4 @@ li input {
 	margin-left: auto;
 	margin-right: auto;
 }
+

@@ -6,7 +6,7 @@ requirejs.config({
 	}
 })
 global = window
-let slot = "Unnamed"
+let slot = null
 
 function finishEntry(entry, profileName) {
 	console.log(profileName)
@@ -41,7 +41,7 @@ newButton.addEventListener('click', () => {
 	entry.appendChild(entryInput)
 	profileSelectorList.appendChild(entry)
 	entryInput.focus()
-	entryInput.addEventListener('blur', () => {
+	function submit()  {
 		let name = entryInput.value
 		if(name) {
 			// if a save with this name exists already, append a _ to this name, and check again
@@ -55,6 +55,11 @@ newButton.addEventListener('click', () => {
 		} else {
 			profileSelectorList.removeChild(entry)
 		}
+	}
+	entryInput.addEventListener('blur', submit)
+	entryInput.addEventListener('keypress', ev => {
+		if(ev.key === 'Enter')
+			submit()
 	})
 	console.log(entryInput)
 })
@@ -64,6 +69,14 @@ profileSelectorList.appendChild(newButton)
 
 // add selected slot
 slot = localStorage.getItem('#slot')
+if(slot !== null && localStorage.getItem('slot:' + slot) === null) {
+	slot = null
+	localStorage.removeItem('#slot')
+}
+
+// if slot is set, enable start button
+if(slot !== null)
+	document.getElementById('start_button').disabled = false
 
 
 // iterate through items in localStorage
@@ -97,6 +110,8 @@ document.getElementById('ok').addEventListener('click', () => {
 		localStorage.setItem('slot:' + value, '')
 	})
 	document.getElementById('overlay').style.display = 'none'
+	if(slot !== null)
+		document.getElementById('start_button').disabled = false
 })
 document.getElementById('cancel').addEventListener('click', () => {
 	document.getElementById('overlay').style.display = 'none'
