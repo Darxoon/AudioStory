@@ -59,6 +59,10 @@ newButton.addEventListener('click', () => {
 profileSelectorList.appendChild(newButton)
 
 
+// add selected slot
+slot = localStorage.getItem('#slot')
+
+
 // iterate through items in localStorage
 for(const name in localStorage) {
 	// if it's a slot
@@ -70,6 +74,8 @@ for(const name in localStorage) {
 		entry.innerText = profileName
 		finishEntry(entry, profileName)
 		profileSelectorList.appendChild(entry)
+		if(profileName === slot)
+			entry.click()
 	}
 }
 
@@ -83,8 +89,9 @@ document.getElementById('select_save_button').addEventListener('click', () => {
 })
 document.getElementById('ok').addEventListener('click', () => {
 	slot = profileChanges.slot
+	localStorage.setItem('#slot', profileChanges.slot)
 	profileChanges.newSlots.forEach(value => {
-		localStorage.setItem(value, '')
+		localStorage.setItem('slot:' + value, '')
 	})
 	document.getElementById('overlay').style.display = 'none'
 })
