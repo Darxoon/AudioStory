@@ -3,12 +3,6 @@
 
 It's completely made by Darxoon and utilizes a text-to-speech api for pronouncing the text. Maybe, I'll add real voice later, however, now, it's not planned.
 
-**Github:** https://github.com/Darxoon/AudioStory<br>
-**Website:** https://AudioStory.github.io/<br>
-**Youtube:** [Darxoon](https://www.youtube.com/channel/UCPUuzVM3shb1OExbMu0VV0Q?view_as=subscriber "Youtube")<br>
-**Twitter:** [@darxoon](https://twitter.com/darxoon "twitter.com/darxoon")<br>
-**Discord:** [discord.gg/2PyRyRh](https://discord.gg/2PyRyRh "My discord server")
-
 ### Controls
 
 * Navigate through menus with `W` and `S`.
