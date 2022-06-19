@@ -1,7 +1,5 @@
 # AudioStory
-*'AudioStory'* &nbsp;is an interactive Story entirely based on audio.
-
-It's completely made by Darxoon and utilizes a text-to-speech api for pronouncing the text. Maybe, I'll add real voice later, however, now, it's not planned.
+AudioStory is an interactive RPG entirely based on audio, utilizing text-to-speech for pronouncing the text, although it might get proper voicelines in the future.
 
 ### Controls
 
@@ -17,4 +15,4 @@ It's completely made by Darxoon and utilizes a text-to-speech api for pronouncin
 
 ### Development
 
-This is still in development. A release date is not planned.
+This is still early in development. I am not sure where the development of this is going to go.
